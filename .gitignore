@@ -7,7 +7,7 @@ __pycache__/
 *.tmp
 *.swp
 
-# Arquivos de cache de notebooks (caso use)
+# Arquivos de cache de notebooks
 .ipynb_checkpoints/
 
 # ========== VSCode / macOS ==========
@@ -18,19 +18,6 @@ __pycache__/
 venv/
 .venv/
 .env/
-
-# ========== DADOS GERADOS ==========
-figures/
-*.png
-*.jpg
-
-# ========== MODELOS E RESULTADOS FUTUROS ==========
-*.pkl
-*.joblib
-*.json
-*.csv
-*.npy
-*.npz
 
 # ========== OUTROS ==========
 *.bak
