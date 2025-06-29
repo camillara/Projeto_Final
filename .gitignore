@@ -1,0 +1,37 @@
+# ========== PYTHON ==========
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.log
+*.tmp
+*.swp
+
+# Arquivos de cache de notebooks (caso use)
+.ipynb_checkpoints/
+
+# ========== VSCode / macOS ==========
+.vscode/
+.DS_Store
+
+# ========== ENV / VENV / DEPENDÊNCIAS ==========
+venv/
+.venv/
+.env/
+
+# ========== DADOS GERADOS ==========
+figures/
+*.png
+*.jpg
+
+# ========== MODELOS E RESULTADOS FUTUROS ==========
+*.pkl
+*.joblib
+*.json
+*.csv
+*.npy
+*.npz
+
+# ========== OUTROS ==========
+*.bak
+*.old
