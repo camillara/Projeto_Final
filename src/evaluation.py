@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import logging
 from typing import Tuple
 
 def simular_estrategia_investimento(
@@ -35,7 +36,6 @@ def simular_estrategia_investimento(
         variacao_prevista = (previsao - preco_hoje) / preco_hoje
 
         if variacao_prevista > threshold:
-            # Simula a compra e venda no dia seguinte
             quantidade_comprada = capital_disponivel / preco_hoje
             capital_final = quantidade_comprada * preco_amanha
             lucro = capital_final - capital_disponivel
@@ -51,7 +51,6 @@ def simular_estrategia_investimento(
 
     df_resultado = pd.DataFrame(historico)
 
-    # Cálculo adicional necessário para integração com main.py
     if not df_resultado.empty:
         df_resultado["CapitalFinal"] = df_resultado["Lucro"].cumsum() + capital
         df_resultado["RetornoPercentual"] = (df_resultado["CapitalFinal"] - capital) / capital * 100
@@ -60,7 +59,7 @@ def simular_estrategia_investimento(
         df_resultado["RetornoPercentual"] = [0.0]
 
     if verbose:
-        print(f"\n[SIMULAÇÃO] Lucro final com capital inicial de R$ {capital:.2f}: R$ {lucro_total:.2f}")
-        print(f"[SIMULAÇÃO] Retorno percentual: {lucro_total / capital * 100:.2f}%")
+        logging.info(f"[SIMULAÇÃO] Lucro final com capital inicial de R$ {capital:.2f}: R$ {lucro_total:.2f}")
+        logging.info(f"[SIMULAÇÃO] Retorno percentual: {lucro_total / capital * 100:.2f}%")
 
     return lucro_total, df_resultado

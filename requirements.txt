@@ -5,6 +5,7 @@ seaborn
 scikit-learn
 scipy
 argparse
+joblib
 pytest
 pytest-cov
 black

@@ -25,6 +25,7 @@ def main():
     parser.add_argument("--simular", action="store_true", help="Simular estratégia de investimento com MLP")
     parser.add_argument("--threshold", type=float, help="Valor mínimo de previsão para decidir compra (ex: 0.01)")
     parser.add_argument("--todas", action="store_true", help="Executar simulações para todas as criptomoedas")
+    parser.add_argument("--forcar_treinamento", action="store_true", help="Forçar re-treinamento mesmo que modelos já existam")
 
     args = parser.parse_args()
 
@@ -40,7 +41,7 @@ def main():
             if args.com_features:
                 df = adicionar_features_basicas(df)
 
-            resultados = treinar_modelos(df)
+            resultados = treinar_modelos(df, nome_cripto=nome, reutilizar=not args.forcar_treinamento)
             mlp_model = resultados.get("MLP", {}).get("modelo")
             mse_mlp = resultados.get("MLP", {}).get("mse")
 
@@ -73,7 +74,6 @@ def main():
         print("[OK] Gráfico salvo em figures/retornos_criptos.png")
         return
 
-    # Se não for batch e --crypto não foi informado
     if not args.crypto:
         print("[ERRO] Informe --crypto ou use --todas.")
         return
@@ -98,11 +98,12 @@ def main():
 
     if args.treinar_modelos:
         print(f"\n[INFO] Treinando modelos para {args.crypto.upper()}...\n")
-        resultados = treinar_modelos(df)
+        resultados = treinar_modelos(df, nome_cripto=args.crypto.upper(), reutilizar=not args.forcar_treinamento)
 
         print("[RESULTADOS - MÉDIA DE ERRO QUADRÁTICO (MSE) - KFold]")
         for nome, info in resultados.items():
-            print(f"{nome}: MSE médio = {info['mse']:.4f}")
+            mse = info['mse']
+            print(f"{nome}: MSE médio = {mse:.4f}" if mse is not None and not pd.isna(mse) else f"{nome}: modelo carregado (MSE não reavaliado)")
 
         if args.simular:
             print(f"\n[INFO] Simulando estratégia com MLP para {args.crypto.upper()}...\n")

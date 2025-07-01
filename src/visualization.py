@@ -1,32 +1,38 @@
+import os
+import logging
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
 from scipy import stats
+from typing import Optional
 
+# Evita reconfigurar o logging se ele já estiver configurado
+if not logging.getLogger().hasHandlers():
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 def salvar_grafico(nome: str, pasta: str = "figures", dpi: int = 150) -> None:
     """
-    Salva o gráfico atual na pasta especificada.
+    Salva o gráfico atual na pasta especificada com o nome fornecido.
 
     Args:
-        nome (str): Nome do arquivo de saída (sem extensão).
-        pasta (str): Pasta onde salvar os gráficos.
-        dpi (int): Resolução da imagem.
+        nome (str): Nome do arquivo (sem extensão).
+        pasta (str): Nome da pasta onde o arquivo será salvo.
+        dpi (int): Qualidade da imagem.
     """
     os.makedirs(pasta, exist_ok=True)
     caminho = os.path.join(pasta, f"{nome}.png")
     plt.savefig(caminho, dpi=dpi, bbox_inches="tight")
     plt.close()
+    logging.info(f"[GRAFICO] Gráfico salvo em: {caminho}")
 
 
 def plot_boxplot(df: pd.DataFrame, nome_cripto: str) -> None:
     """
-    Gera e salva o boxplot do preço de fechamento.
+    Gera e salva um boxplot para os preços de fechamento.
 
     Args:
-        df (pd.DataFrame): DataFrame da criptomoeda.
-        nome_cripto (str): Nome para o título e nome do arquivo.
+        df (pd.DataFrame): DataFrame contendo a coluna 'Fechamento'.
+        nome_cripto (str): Nome da criptomoeda.
     """
     plt.figure(figsize=(6, 4))
     sns.boxplot(y=df['Fechamento'])
@@ -37,11 +43,11 @@ def plot_boxplot(df: pd.DataFrame, nome_cripto: str) -> None:
 
 def plot_histograma(df: pd.DataFrame, nome_cripto: str) -> None:
     """
-    Gera e salva o histograma do preço de fechamento.
+    Gera e salva um histograma para os preços de fechamento.
 
     Args:
-        df (pd.DataFrame): DataFrame da criptomoeda.
-        nome_cripto (str): Nome para o título e nome do arquivo.
+        df (pd.DataFrame): DataFrame contendo a coluna 'Fechamento'.
+        nome_cripto (str): Nome da criptomoeda.
     """
     plt.figure(figsize=(6, 4))
     sns.histplot(df['Fechamento'], bins=30, kde=True)
@@ -51,22 +57,36 @@ def plot_histograma(df: pd.DataFrame, nome_cripto: str) -> None:
     salvar_grafico(f"{nome_cripto}_histograma")
 
 
-def plot_linha_media_mediana_moda(df: pd.DataFrame, nome_cripto: str) -> None:
+def moda_rolante(series: pd.Series) -> Optional[float]:
     """
-    Gera e salva gráfico de linha com média, mediana e moda.
+    Calcula a moda de uma série com fallback para NaN se vazia.
 
     Args:
-        df (pd.DataFrame): DataFrame da criptomoeda.
-        nome_cripto (str): Nome para o título e nome do arquivo.
+        series (pd.Series): Janela da série temporal.
+
+    Returns:
+        float | None: Valor da moda ou NaN.
+    """
+    try:
+        moda = stats.mode(series, keepdims=True).mode[0]
+        return moda
+    except Exception as e:
+        logging.warning(f"Erro ao calcular moda rolante: {e}")
+        return float('nan')
+
+
+def plot_linha_media_mediana_moda(df: pd.DataFrame, nome_cripto: str) -> None:
+    """
+    Gera e salva gráfico com a linha do preço de fechamento,
+    média, mediana e moda móveis (7 dias).
+
+    Args:
+        df (pd.DataFrame): DataFrame contendo 'Data' e 'Fechamento'.
+        nome_cripto (str): Nome da criptomoeda.
     """
     df = df.copy()
     df['Media'] = df['Fechamento'].rolling(window=7).mean()
     df['Mediana'] = df['Fechamento'].rolling(window=7).median()
-
-    # Moda mais frequente no intervalo de 7 dias
-    def moda_rolante(series):
-        return stats.mode(series, keepdims=True).mode[0]
-
     df['Moda'] = df['Fechamento'].rolling(window=7).apply(moda_rolante, raw=False)
 
     plt.figure(figsize=(10, 5))
