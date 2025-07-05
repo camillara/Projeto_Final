@@ -1,0 +1,13 @@
+[run]
+omit =
+    */__init__.py
+    */main.py
+    */logging_config.py
+    tests/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    def __str__
+    def __repr__
