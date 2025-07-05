@@ -6,6 +6,7 @@ from src.visualization import (
     plot_boxplot,
     plot_histograma,
     plot_linha_media_mediana_moda,
+    calcular_dispersao
 )
 from src.models import treinar_modelos
 from src.evaluation import simular_estrategia_investimento
@@ -26,6 +27,9 @@ def main():
     parser.add_argument("--threshold", type=float, help="Valor mínimo de previsão para decidir compra (ex: 0.01)")
     parser.add_argument("--todas", action="store_true", help="Executar simulações para todas as criptomoedas")
     parser.add_argument("--forcar_treinamento", action="store_true", help="Forçar re-treinamento mesmo que modelos já existam")
+    parser.add_argument("--analise_completa", action="store_true", help="Executar análise gráfica e estatística completa para todas as criptomoedas")
+    parser.add_argument("--model", type=str, help="Nome do modelo a ser usado (MLP, Linear, Polinomial)")
+    parser.add_argument("--kfolds", type=int, default=5, help="Número de folds para validação cruzada KFold (padrão = 5)")
 
     args = parser.parse_args()
 
@@ -36,12 +40,18 @@ def main():
         resultados_simulacoes = []
 
         for nome, df in dados.items():
-            print(f"\n🔄 Processando {nome}...")
+            print(f"\nProcessando {nome}...")
 
             if args.com_features:
                 df = adicionar_features_basicas(df)
 
-            resultados = treinar_modelos(df, nome_cripto=nome, reutilizar=not args.forcar_treinamento)
+            resultados = treinar_modelos(
+                df,
+                nome_cripto=args.crypto.upper(),
+                reutilizar=not args.forcar_treinamento,
+                modelo_especifico=args.model,
+                num_folds=args.kfolds
+            )
             mlp_model = resultados.get("MLP", {}).get("modelo")
             mse_mlp = resultados.get("MLP", {}).get("mse")
 
@@ -57,13 +67,30 @@ def main():
 
                 lucro_final = df_simulacao["CapitalFinal"].iloc[-1]
                 retorno_percentual = df_simulacao["RetornoPercentual"].iloc[-1]
+            else:
+                lucro_final = None
+                retorno_percentual = None
 
-                resultados_simulacoes.append({
-                    "Criptomoeda": nome,
-                    "MSE_MLP": mse_mlp,
-                    "LucroFinal": lucro_final,
-                    "RetornoPercentual": retorno_percentual
-                })
+            # Cálculo das medidas estatísticas
+            media = df["Fechamento"].mean()
+            mediana = df["Fechamento"].median()
+            moda = df["Fechamento"].mode().iloc[0] if not df["Fechamento"].mode().empty else None
+            desvio_padrao = df["Fechamento"].std()
+            variancia = df["Fechamento"].var()
+            coef_var = (desvio_padrao / media) * 100 if media else None
+
+            resultados_simulacoes.append({
+                "Criptomoeda": nome,
+                "MSE_MLP": mse_mlp,
+                "LucroFinal": lucro_final,
+                "RetornoPercentual": retorno_percentual,
+                "Média": media,
+                "Mediana": mediana,
+                "Moda": moda,
+                "Desvio Padrão": desvio_padrao,
+                "Variância": variancia,
+                "Coef. Variação (%)": coef_var
+            })
 
         df_resultados = pd.DataFrame(resultados_simulacoes)
         df_resultados.sort_values(by="RetornoPercentual", ascending=False, inplace=True)
@@ -94,11 +121,18 @@ def main():
         plot_boxplot(df, args.crypto.upper())
         plot_histograma(df, args.crypto.upper())
         plot_linha_media_mediana_moda(df, args.crypto.upper())
+        calcular_dispersao(df, args.crypto.upper())
         print("[OK] Gráficos salvos em figures/")
 
     if args.treinar_modelos:
         print(f"\n[INFO] Treinando modelos para {args.crypto.upper()}...\n")
-        resultados = treinar_modelos(df, nome_cripto=args.crypto.upper(), reutilizar=not args.forcar_treinamento)
+        resultados = treinar_modelos(
+            df,
+            nome_cripto=args.crypto.upper(),
+            reutilizar=not args.forcar_treinamento,
+            modelo_especifico=args.model,
+            num_folds=args.kfolds
+        )
 
         print("[RESULTADOS - MÉDIA DE ERRO QUADRÁTICO (MSE) - KFold]")
         for nome, info in resultados.items():
@@ -120,6 +154,19 @@ def main():
                 _, df_simulacao = simular_estrategia_investimento(df, y_pred, threshold=args.threshold or 0.01)
             else:
                 print("[ERRO] Modelo MLP não encontrado nos resultados.")
+
+    if args.analise_completa:
+        print("[INFO] Executando análise gráfica e estatística para todas as criptomoedas...\n")
+        for nome, df in dados.items():
+            print(f"\nGerando gráficos e estatísticas para {nome}...")
+
+            plot_boxplot(df, nome)
+            plot_histograma(df, nome)
+            plot_linha_media_mediana_moda(df, nome)
+            calcular_dispersao(df, nome)
+
+        print("\n[OK] Gráficos salvos em figures/, medidas de dispersão no log.")
+        return
 
 
 if __name__ == "__main__":

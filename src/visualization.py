@@ -73,6 +73,28 @@ def moda_rolante(series: pd.Series) -> Optional[float]:
     except Exception as e:
         logging.warning(f"Erro ao calcular moda rolante: {e}")
         return float('nan')
+    
+def calcular_dispersao(df: pd.DataFrame, nome_cripto: str) -> None:
+    """
+    Calcula e exibe as medidas de dispersão para a criptomoeda.
+
+    Args:
+        df (pd.DataFrame): DataFrame com a coluna 'Fechamento'.
+        nome_cripto (str): Nome da criptomoeda.
+    """
+    fechamento = df['Fechamento'].dropna()
+    desvio_padrao = fechamento.std()
+    variancia = fechamento.var()
+    amplitude = fechamento.max() - fechamento.min()
+    q1 = fechamento.quantile(0.25)
+    q3 = fechamento.quantile(0.75)
+    iqr = q3 - q1
+
+    logging.info(f"[DISPERSÃO] {nome_cripto}")
+    logging.info(f"  Desvio padrão: {desvio_padrao:.4f}")
+    logging.info(f"  Variância: {variancia:.4f}")
+    logging.info(f"  Amplitude: {amplitude:.4f}")
+    logging.info(f"  IQR (Q3 - Q1): {iqr:.4f}")
 
 
 def plot_linha_media_mediana_moda(df: pd.DataFrame, nome_cripto: str) -> None:
