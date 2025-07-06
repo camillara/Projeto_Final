@@ -6,10 +6,11 @@ from src.visualization import (
     plot_boxplot,
     plot_histograma,
     plot_linha_media_mediana_moda,
-    calcular_dispersao
+    calcular_dispersao,
+    plotar_dispersao_e_lucros
 )
 from src.models import treinar_modelos
-from src.evaluation import simular_estrategia_investimento
+from src.evaluation import simular_estrategia_investimento, comparar_modelos_regressao
 from src.utils import plot_grafico_retorno
 
 
@@ -30,6 +31,8 @@ def main():
     parser.add_argument("--analise_completa", action="store_true", help="Executar análise gráfica e estatística completa para todas as criptomoedas")
     parser.add_argument("--model", type=str, help="Nome do modelo a ser usado (MLP, Linear, Polinomial)")
     parser.add_argument("--kfolds", type=int, default=5, help="Número de folds para validação cruzada KFold (padrão = 5)")
+    parser.add_argument("--comparar_modelos", action="store_true", help="Executar comparação de desempenho entre os modelos")
+
 
     args = parser.parse_args()
 
@@ -47,11 +50,12 @@ def main():
 
             resultados = treinar_modelos(
                 df,
-                nome_cripto=args.crypto.upper(),
+                nome_cripto=nome,  # usa o nome da cripto do loop, não args.crypto
                 reutilizar=not args.forcar_treinamento,
                 modelo_especifico=args.model,
                 num_folds=args.kfolds
             )
+
             mlp_model = resultados.get("MLP", {}).get("modelo")
             mse_mlp = resultados.get("MLP", {}).get("mse")
 
@@ -100,6 +104,7 @@ def main():
         plot_grafico_retorno(df_resultados)
         print("[OK] Gráfico salvo em figures/retornos_criptos.png")
         return
+
 
     if not args.crypto:
         print("[ERRO] Informe --crypto ou use --todas.")
@@ -167,6 +172,33 @@ def main():
 
         print("\n[OK] Gráficos salvos em figures/, medidas de dispersão no log.")
         return
+    
+    if args.comparar_modelos:
+        if args.crypto is None:
+            raise ValueError("Para comparar modelos, especifique a criptomoeda com --crypto NOME.")
+
+        print(f"[INFO] Comparando modelos para {args.crypto.upper()}...\n")
+
+        resultados = treinar_modelos(
+            df,
+            nome_cripto=args.crypto.upper(),
+            reutilizar=not args.forcar_treinamento,
+            modelo_especifico=None,
+            num_folds=args.kfolds
+        )
+
+        # Obtém as previsões do MLP
+        mlp_modelo = resultados["MLP"]["modelo"]
+        X = df.drop(columns=["Fechamento", "Data"], errors="ignore")
+        y_real = df["Fechamento"].values
+        mlp_preds = mlp_modelo.predict(X)
+
+        # Comparação completa dos modelos
+        resultados_completos = comparar_modelos_regressao(df, y_real, mlp_preds)
+
+        plotar_dispersao_e_lucros(resultados_completos)
+        print("[OK] Comparação entre modelos finalizada. Gráficos e métricas salvos em /figures.")
+
 
 
 if __name__ == "__main__":

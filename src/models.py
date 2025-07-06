@@ -86,8 +86,15 @@ def treinar_modelos(
             modelo_mlp.fit(X, y)
             salvar_modelo(modelo_mlp, nome_modelo_mlp)
         mse_mlp = -cross_val_score(modelo_mlp, X, y, cv=kf, scoring='neg_mean_squared_error').mean()
-        resultados["MLP"] = {"modelo": modelo_mlp, "mse": mse_mlp}
+        preds_mlp = modelo_mlp.predict(X)
+        resultados["MLP"] = {
+            "modelo": modelo_mlp,
+            "mse": mse_mlp,
+            "y_real": y.values,
+            "previsoes": preds_mlp
+        }
         logging.info(f"[MODELOS] MLP Regressor: MSE médio = {mse_mlp:.4f}")
+
 
     logging.info("[MODELOS] Treinamento concluído com sucesso.")
     return resultados
