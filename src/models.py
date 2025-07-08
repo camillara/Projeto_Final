@@ -36,7 +36,7 @@ def treinar_modelos(
         modelo_especifico (str | None): Se definido, treina apenas o modelo informado.
 
     Returns:
-        Dict[str, Any]: Dicionário com modelos e MSEs.
+        Dict[str, Any]: Dicionário com modelos, MSEs e previsões.
     """
     resultados: Dict[str, Any] = {}
 
@@ -55,7 +55,13 @@ def treinar_modelos(
             modelo_lr.fit(X, y)
             salvar_modelo(modelo_lr, nome_modelo_lr)
         mse_lr = -cross_val_score(modelo_lr, X, y, cv=kf, scoring='neg_mean_squared_error').mean()
-        resultados["Linear"] = {"modelo": modelo_lr, "mse": mse_lr}
+        preds_lr = modelo_lr.predict(X)
+        resultados["Linear"] = {
+            "modelo": modelo_lr,
+            "mse": mse_lr,
+            "y_real": y.values,
+            "previsoes": preds_lr
+        }
         logging.info(f"[MODELOS] Regressão Linear: MSE médio = {mse_lr:.4f}")
 
     # Regressões Polinomiais
@@ -74,7 +80,13 @@ def treinar_modelos(
                 modelo_poly.fit(X, y)
                 salvar_modelo(modelo_poly, nome_modelo_poly)
             mse_poly = -cross_val_score(modelo_poly, X, y, cv=kf, scoring='neg_mean_squared_error').mean()
-            resultados[modelo_label] = {"modelo": modelo_poly, "mse": mse_poly}
+            preds_poly = modelo_poly.predict(X)
+            resultados[modelo_label] = {
+                "modelo": modelo_poly,
+                "mse": mse_poly,
+                "y_real": y.values,
+                "previsoes": preds_poly
+            }
             logging.info(f"[MODELOS] Polinomial Grau {grau}: MSE médio = {mse_poly:.4f}")
 
     # MLP
@@ -95,6 +107,7 @@ def treinar_modelos(
         }
         logging.info(f"[MODELOS] MLP Regressor: MSE médio = {mse_mlp:.4f}")
 
-
     logging.info("[MODELOS] Treinamento concluído com sucesso.")
     return resultados
+
+

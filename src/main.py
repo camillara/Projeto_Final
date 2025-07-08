@@ -7,7 +7,8 @@ from src.visualization import (
     plot_histograma,
     plot_linha_media_mediana_moda,
     calcular_dispersao,
-    plotar_dispersao_e_lucros
+    plotar_dispersao_e_lucros,
+    plot_grafico_comparativo_modelos
 )
 from src.models import treinar_modelos
 from src.evaluation import simular_estrategia_investimento, comparar_modelos_regressao
@@ -48,34 +49,26 @@ def main():
             if args.com_features:
                 df = adicionar_features_basicas(df)
 
+            # Treina os modelos ou carrega versões anteriores
             resultados = treinar_modelos(
                 df,
-                nome_cripto=nome,  # usa o nome da cripto do loop, não args.crypto
+                nome_cripto=nome,
                 reutilizar=not args.forcar_treinamento,
                 modelo_especifico=args.model,
                 num_folds=args.kfolds
             )
 
-            mlp_model = resultados.get("MLP", {}).get("modelo")
-            mse_mlp = resultados.get("MLP", {}).get("mse")
+            # Inicializa dicionário para armazenar retornos de cada modelo
+            dados_modelos = {}
+            for modelo_nome in ["MLP", "Linear", "Polinomial_2"]:
+                predicoes = resultados.get(modelo_nome, {}).get("previsoes")
+                if predicoes is not None:
+                    _, df_sim = simular_estrategia_investimento(df, predicoes, threshold=args.threshold or 0.01)
+                    dados_modelos[modelo_nome] = df_sim["RetornoPercentual"].iloc[-1]
+                else:
+                    dados_modelos[modelo_nome] = None
 
-            if mlp_model:
-                colunas_remover = ["Fechamento", "Data"]
-                X_final = df.drop(columns=[col for col in colunas_remover if col in df.columns])
-                y_final = df["Fechamento"]
-
-                mlp_model.fit(X_final, y_final)
-                y_pred = mlp_model.predict(X_final)
-
-                _, df_simulacao = simular_estrategia_investimento(df, y_pred, threshold=args.threshold or 0.01)
-
-                lucro_final = df_simulacao["CapitalFinal"].iloc[-1]
-                retorno_percentual = df_simulacao["RetornoPercentual"].iloc[-1]
-            else:
-                lucro_final = None
-                retorno_percentual = None
-
-            # Cálculo das medidas estatísticas
+            # Cálculo das estatísticas descritivas
             media = df["Fechamento"].mean()
             mediana = df["Fechamento"].median()
             moda = df["Fechamento"].mode().iloc[0] if not df["Fechamento"].mode().empty else None
@@ -83,11 +76,15 @@ def main():
             variancia = df["Fechamento"].var()
             coef_var = (desvio_padrao / media) * 100 if media else None
 
+            # Adiciona ao DataFrame de resultados
             resultados_simulacoes.append({
                 "Criptomoeda": nome,
-                "MSE_MLP": mse_mlp,
-                "LucroFinal": lucro_final,
-                "RetornoPercentual": retorno_percentual,
+                "MSE_MLP": resultados.get("MLP", {}).get("mse"),
+                "RetornoPercentual_MLP": dados_modelos.get("MLP"),
+                "RetornoPercentual_Linear": dados_modelos.get("Linear"),
+                "MSE_Linear": resultados.get("Linear", {}).get("mse"),
+                "RetornoPercentual_Polinomial_2": dados_modelos.get("Polinomial_2"),
+                "MSE_Polinomial_2": resultados.get("Polinomial_2", {}).get("mse"),
                 "Média": media,
                 "Mediana": mediana,
                 "Moda": moda,
@@ -96,13 +93,20 @@ def main():
                 "Coef. Variação (%)": coef_var
             })
 
+        # Gera DataFrame final com os resultados e salva em CSV
         df_resultados = pd.DataFrame(resultados_simulacoes)
-        df_resultados.sort_values(by="RetornoPercentual", ascending=False, inplace=True)
+        df_resultados.sort_values(by="RetornoPercentual_MLP", ascending=False, inplace=True)
         df_resultados.to_csv("resultados_simulacoes.csv", index=False)
         print("\n[OK] Resultados salvos em resultados_simulacoes.csv")
 
+        # Gera gráfico tradicional da MLP
         plot_grafico_retorno(df_resultados)
         print("[OK] Gráfico salvo em figures/retornos_criptos.png")
+
+        # Gera gráfico comparativo entre modelos, se colunas estiverem disponíveis
+        if "RetornoPercentual_Linear" in df_resultados.columns and "RetornoPercentual_Poly_2" in df_resultados.columns:
+            plot_grafico_comparativo_modelos(df_resultados)
+
         return
 
 

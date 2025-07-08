@@ -8,19 +8,25 @@ from typing import Any
 def plot_grafico_retorno(df_resultados):
     """
     Gera e salva um gráfico de barras com o retorno percentual por criptomoeda.
+    Usa a coluna 'RetornoPercentual_MLP' como padrão, já que representa a simulação do modelo MLP.
 
     Args:
-        df_resultados (pd.DataFrame): DataFrame com colunas 'Criptomoeda' e 'RetornoPercentual'.
+        df_resultados (pd.DataFrame): DataFrame com colunas 'Criptomoeda' e 'RetornoPercentual_MLP'.
     """
+    if "RetornoPercentual_MLP" not in df_resultados.columns:
+        print("[AVISO] Coluna 'RetornoPercentual_MLP' não encontrada. Gráfico de retorno padrão não será gerado.")
+        return
+
     os.makedirs("figures", exist_ok=True)
     plt.figure(figsize=(10, 6))
-    plt.barh(df_resultados["Criptomoeda"], df_resultados["RetornoPercentual"], color="skyblue")
-    plt.xlabel("Retorno Percentual")
-    plt.title("Retorno por Criptomoeda (Simulação MLP)")
-    plt.gca().invert_yaxis()
+    plt.barh(df_resultados["Criptomoeda"], df_resultados["RetornoPercentual_MLP"], color="skyblue")
+    plt.xlabel("Retorno Percentual (MLP)")
+    plt.title("Retorno Percentual por Criptomoeda (Modelo MLP)")
     plt.tight_layout()
     plt.savefig("figures/retornos_criptos.png")
     plt.close()
+    print("[OK] Gráfico salvo em figures/retornos_criptos.png")
+
 
 
 # === SALVAR MODELO ===

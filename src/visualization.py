@@ -258,3 +258,67 @@ def plotar_dispersao_e_lucros(resultados: Dict[str, Dict], pasta: str = "figures
     df_erros.to_csv(caminho_erro, index=False)
     logging.info(f"[Erro] Erros padrão salvos em: {caminho_erro}")
 
+def plot_grafico_comparativo_modelos(df_resultados):
+    """
+    Gera um gráfico de barras comparando o retorno percentual obtido por diferentes modelos
+    (MLP, Regressão Linear e Polinomial de Grau 2) para cada criptomoeda analisada.
+
+    O gráfico é salvo em 'figures/retorno_modelos_comparativo.png'.
+
+    Parâmetros:
+    -----------
+    df_resultados : pandas.DataFrame
+        DataFrame contendo as colunas:
+        - 'Criptomoeda'
+        - 'RetornoPercentual_MLP'
+        - 'RetornoPercentual_Linear'
+        - 'RetornoPercentual_Poly_2'
+
+    Retorno:
+    --------
+    None
+    """
+
+    # Extrai os nomes das criptomoedas e os retornos dos modelos, substituindo None por 0
+    criptos = df_resultados['Criptomoeda']
+    mlp = df_resultados['RetornoPercentual_MLP'].fillna(0)
+    linear = df_resultados['RetornoPercentual_Linear'].fillna(0)
+    poly2 = df_resultados['RetornoPercentual_Polinomial_2'].fillna(0)
+
+    # Define o número de barras e o espaçamento entre elas
+    x = np.arange(len(criptos))
+    largura_barra = 0.25
+
+    # Cria a figura e o eixo do gráfico
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Plota as barras de cada modelo deslocadas horizontalmente
+    ax.bar(x - largura_barra, mlp, width=largura_barra, label='MLP', color='skyblue')
+    ax.bar(x, linear, width=largura_barra, label='Linear', color='orange')
+    ax.bar(x + largura_barra, poly2, width=largura_barra, label='Polinomial Grau 2', color='green')
+
+    # Ajustes do eixo x
+    ax.set_xticks(x)
+    ax.set_xticklabels(criptos, rotation=45, ha='right')
+
+    # Rótulos e título
+    ax.set_ylabel('Retorno Percentual')
+    ax.set_title('Comparação de Retorno Percentual por Modelo e Criptomoeda')
+
+    # Exibe legenda e grade
+    ax.legend()
+    ax.grid(True, linestyle='--', alpha=0.5)
+
+    # Ajusta layout para não cortar elementos
+    plt.tight_layout()
+
+    # Garante que o diretório de saída exista
+    os.makedirs("figures", exist_ok=True)
+
+    # Salva o gráfico como imagem
+    plt.savefig("figures/retorno_modelos_comparativo.png")
+    plt.close()
+
+    # Confirmação no console
+    print("[OK] Gráfico comparativo salvo em figures/retorno_modelos_comparativo.png")
+
