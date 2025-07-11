@@ -35,8 +35,17 @@ for cripto in criptos:
 
     for modelo in df_cripto["Modelo"].unique():
         df_modelo = df_cripto[df_cripto["Modelo"] == modelo]
+
+        # Calcular correlação
+        if len(df_modelo) > 1:
+            correlacao = df_modelo[["Valor Real", "Valor Previsto"]].corr().iloc[0, 1]
+            label = f"{modelo} (r = {correlacao:.2f})"
+        else:
+            label = f"{modelo} (r=N/A)"
+
         plt.scatter(df_modelo["Valor Real"], df_modelo["Valor Previsto"], 
-                    label=modelo, alpha=0.5, s=15)
+                    label=label, alpha=0.5, s=15)
+
 
     min_val = min(df_cripto["Valor Real"].min(), df_cripto["Valor Previsto"].min())
     max_val = max(df_cripto["Valor Real"].max(), df_cripto["Valor Previsto"].max())
