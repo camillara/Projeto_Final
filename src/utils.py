@@ -29,7 +29,6 @@ def plot_grafico_retorno(df_resultados):
     print("[OK] Gráfico salvo em figures/retornos_criptos.png")
 
 
-
 # === SALVAR MODELO ===
 def salvar_modelo(modelo: Any, nome: str, pasta: str = "modelos") -> None:
     """
@@ -63,7 +62,6 @@ def carregar_modelo(nome: str, pasta: str = "modelos") -> Any:
         logging.info(f"[{nome}] Modelo carregado de: {caminho}")
         return joblib.load(caminho)
     return None
-
 
 # === PREPROCESSAMENTO DE DADOS ===
 def preprocessar_dados(df: pd.DataFrame) -> pd.DataFrame:
