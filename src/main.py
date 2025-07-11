@@ -13,6 +13,7 @@ from src.visualization import (
 from src.models import treinar_modelos
 from src.evaluation import simular_estrategia_investimento, comparar_modelos_regressao
 from src.utils import plot_grafico_retorno
+from scripts.gerar_equacoes_regressores import gerar_equacoes
 
 
 def main():
@@ -32,11 +33,18 @@ def main():
     parser.add_argument("--model", type=str, help="Nome do modelo a ser usado (MLP, Linear, Polinomial)")
     parser.add_argument("--kfolds", type=int, default=5, help="Número de folds para validação cruzada KFold (padrão = 5)")
     parser.add_argument("--comparar_modelos", action="store_true", help="Executar comparação de desempenho entre os modelos")
-
-
+    parser.add_argument("--gerar_equacoes", action="store_true", help="Gerar equações dos modelos regressivos")
+    parser.add_argument("--grau-min", type=int, default=1, help="Grau mínimo")
+    parser.add_argument("--grau-max", type=int, default=5, help="Grau máximo")
+    
     args = parser.parse_args()
 
     dados = carregar_multiplas_criptomoedas("data")
+    
+    if args.gerar_equacoes:
+        gerar_equacoes(grau_min=args.grau_min, grau_max=args.grau_max)
+        return 
+    
 
     if args.todas:
         print("[INFO] Executando para todas as criptomoedas da pasta /data...\n")
@@ -209,8 +217,7 @@ def main():
 
         plotar_dispersao_e_lucros(resultados_completos)
         print("[OK] Comparação entre modelos finalizada. Gráficos e métricas salvos em /figures.")
-
-
-
+    
+    
 if __name__ == "__main__":
     main()
