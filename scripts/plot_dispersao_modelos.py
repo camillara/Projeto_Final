@@ -54,7 +54,14 @@ for cripto in criptos:
     plt.xlabel("Valor Real (Fechamento)")
     plt.ylabel("Valor Previsto")
     plt.title(f"Dispersão - Modelos para {cripto}")
-    plt.legend(fontsize="small", bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.legend(
+        title="Modelo e Correlação",
+        title_fontsize="small",
+        fontsize="small",
+        bbox_to_anchor=(1.05, 1),
+        loc='upper left'
+    )
+
     plt.tight_layout()
 
     caminho_saida = os.path.join(DIRETORIO_SAIDA, f"{cripto}_dispersao_modelos.png")
