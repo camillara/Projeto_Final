@@ -85,25 +85,33 @@ def preprocessar_dados(df: pd.DataFrame) -> pd.DataFrame:
 
     if "Data" in df.columns:
         df["Data"] = pd.to_datetime(df["Data"], errors="coerce")
+        df = df.sort_values("Data").reset_index(drop=True)
+    else:
+        df = df.reset_index(drop=True)
 
-    # Ordena por data e remove valores faltantes
-    df = df.sort_values("Data").reset_index(drop=True)
-    df["Retorno"] = df["Fechamento"].pct_change()
-    df["MediaMovel_7d"] = df["Fechamento"].rolling(window=7).mean()
-    df["DesvioPadrao_7d"] = df["Fechamento"].rolling(window=7).std()
-    df["TendenciaAlta"] = (df["Fechamento"] > df["Abertura"]).astype(int)
-    df = df.dropna().reset_index(drop=True)
+    # Renomeia 'close' se necessário
+    if "close" in df.columns and "Fechamento" not in df.columns:
+        df.rename(columns={"close": "Fechamento"}, inplace=True)
 
-    # Transforma colunas categóricas, se houver
+    if "Fechamento" in df.columns:
+        df["Retorno"] = df["Fechamento"].pct_change()
+        df["MediaMovel_7d"] = df["Fechamento"].rolling(window=7).mean()
+        df["DesvioPadrao_7d"] = df["Fechamento"].rolling(window=7).std()
+
+    if "Fechamento" in df.columns and "Abertura" in df.columns:
+        df["TendenciaAlta"] = (df["Fechamento"] > df["Abertura"]).astype(int)
+
     if "Volume" in df.columns:
         df["Volume"] = pd.to_numeric(df["Volume"], errors="coerce")
 
-    # Garante que apenas colunas numéricas (exceto "Data") sejam usadas como features
+    df = df.dropna().reset_index(drop=True)
+
     colunas_validas = df.select_dtypes(include=["number", "bool"]).columns.tolist()
     if "Fechamento" in df.columns:
         colunas_validas.append("Fechamento")
-    colunas_validas = list(set(colunas_validas))  # Remove duplicatas
+    colunas_validas = list(set(colunas_validas))  # remove duplicatas
 
+    import logging
     logging.info(f"[FEATURES] Features adicionadas com sucesso: {list(set(df.columns) - set(['Data', 'Fechamento']))}")
     logging.info(f"[FEATURES] Total de registros após limpeza: {len(df)}")
 

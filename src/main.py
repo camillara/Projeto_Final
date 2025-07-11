@@ -41,6 +41,8 @@ def main():
     if args.todas:
         print("[INFO] Executando para todas as criptomoedas da pasta /data...\n")
         resultados_simulacoes = []
+        previsto_real_geral = []
+
 
         for nome, df in dados.items():
             print(f"\nProcessando {nome}...")
@@ -59,6 +61,17 @@ def main():
                 predicoes = resultado.get("previsoes")
                 mse = resultado.get("mse")
                 linha_resultado[f"MSE_{modelo_nome}"] = mse
+                
+                y_real = resultado.get("y_real")
+                y_pred = resultado.get("previsoes")
+                if y_real is not None and y_pred is not None:
+                    for real, pred in zip(y_real, y_pred):
+                        previsto_real_geral.append({
+                            "Criptomoeda": nome,
+                            "Modelo": modelo_nome,
+                            "Valor Real": real,
+                            "Valor Previsto": pred
+                        })
 
                 if predicoes is not None:
                     lucro_total, df_sim = simular_estrategia_investimento(
@@ -71,20 +84,13 @@ def main():
                     linha_resultado[f"Lucro_{modelo_nome}"] = None
 
             # Estatísticas descritivas do preço de fechamento
-            media = df["Fechamento"].mean()
-            mediana = df["Fechamento"].median()
-            moda = df["Fechamento"].mode().iloc[0] if not df["Fechamento"].mode().empty else None
-            desvio_padrao = df["Fechamento"].std()
-            variancia = df["Fechamento"].var()
-            coef_var = (desvio_padrao / media) * 100 if media else None
-
             linha_resultado.update({
-                "Média": media,
-                "Mediana": mediana,
-                "Moda": moda,
-                "Desvio Padrão": desvio_padrao,
-                "Variância": variancia,
-                "Coef. Variação (%)": coef_var
+                "Média": df["Fechamento"].mean(),
+                "Mediana": df["Fechamento"].median(),
+                "Moda": df["Fechamento"].mode().iloc[0] if not df["Fechamento"].mode().empty else None,
+                "Desvio Padrão": df["Fechamento"].std(),
+                "Variância": df["Fechamento"].var(),
+                "Coef. Variação (%)": (df["Fechamento"].std() / df["Fechamento"].mean()) * 100
             })
 
             resultados_simulacoes.append(linha_resultado)
@@ -95,6 +101,11 @@ def main():
 
         df_resultados.to_csv("resultados_simulacoes.csv", index=False)
         print("\n[OK] Resultados salvos em resultados_simulacoes.csv")
+        
+        # Salvando previsto vs real
+        df_previsto_real = pd.DataFrame(previsto_real_geral)
+        df_previsto_real.to_csv("previsto_real_por_modelo_por_cripto.csv", index=False)
+        print("[OK] Valores reais e previstos salvos em previsto_real_por_modelo_por_cripto.csv")
 
         if "RetornoPercentual_MLP" in df_resultados.columns:
             plot_grafico_retorno(df_resultados)
