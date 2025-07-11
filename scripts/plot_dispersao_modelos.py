@@ -5,7 +5,7 @@ import seaborn as sns
 
 # Caminhos
 ARQUIVO_CSV = "previsto_real_por_modelo_por_cripto.csv"
-DIRETORIO_SAIDA = "figures"
+DIRETORIO_SAIDA = "figures/dispersao"
 
 # Criar pasta de saída, se necessário
 os.makedirs(DIRETORIO_SAIDA, exist_ok=True)
