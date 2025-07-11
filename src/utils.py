@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import joblib
 import logging
 from typing import Any
+import pandas as pd
 
 # === GERAÇÃO DE GRÁFICO DE RETORNO ===
 def plot_grafico_retorno(df_resultados):
@@ -62,3 +63,48 @@ def carregar_modelo(nome: str, pasta: str = "modelos") -> Any:
         logging.info(f"[{nome}] Modelo carregado de: {caminho}")
         return joblib.load(caminho)
     return None
+
+
+# === PREPROCESSAMENTO DE DADOS ===
+def preprocessar_dados(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Função de pré-processamento padrão para os datasets de criptomoedas.
+
+    - Converte colunas para float se necessário.
+    - Renomeia 'close' para 'Fechamento' e calcula o 'Retorno'.
+    - Remove colunas desnecessárias como 'Unnamed: 0', 'unix', 'symbol', etc.
+    - Padroniza nomes de colunas para consistência com os modelos treinados.
+
+    Args:
+        df (pd.DataFrame): DataFrame original carregado do CSV.
+
+    Returns:
+        pd.DataFrame: DataFrame limpo e pronto para uso.
+    """
+    df = df.copy()
+
+    if "Data" in df.columns:
+        df["Data"] = pd.to_datetime(df["Data"], errors="coerce")
+
+    # Ordena por data e remove valores faltantes
+    df = df.sort_values("Data").reset_index(drop=True)
+    df["Retorno"] = df["Fechamento"].pct_change()
+    df["MediaMovel_7d"] = df["Fechamento"].rolling(window=7).mean()
+    df["DesvioPadrao_7d"] = df["Fechamento"].rolling(window=7).std()
+    df["TendenciaAlta"] = (df["Fechamento"] > df["Abertura"]).astype(int)
+    df = df.dropna().reset_index(drop=True)
+
+    # Transforma colunas categóricas, se houver
+    if "Volume" in df.columns:
+        df["Volume"] = pd.to_numeric(df["Volume"], errors="coerce")
+
+    # Garante que apenas colunas numéricas (exceto "Data") sejam usadas como features
+    colunas_validas = df.select_dtypes(include=["number", "bool"]).columns.tolist()
+    if "Fechamento" in df.columns:
+        colunas_validas.append("Fechamento")
+    colunas_validas = list(set(colunas_validas))  # Remove duplicatas
+
+    logging.info(f"[FEATURES] Features adicionadas com sucesso: {list(set(df.columns) - set(['Data', 'Fechamento']))}")
+    logging.info(f"[FEATURES] Total de registros após limpeza: {len(df)}")
+
+    return df[colunas_validas + (["Data"] if "Data" in df.columns else [])]

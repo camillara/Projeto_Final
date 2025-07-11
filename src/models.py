@@ -9,7 +9,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import KFold, cross_val_score
 from sklearn.pipeline import make_pipeline
 
-from src.utils import salvar_modelo, carregar_modelo
+from src.utils import salvar_modelo, carregar_modelo, preprocessar_dados
 
 # Configuração do logger
 if not logging.getLogger().hasHandlers():
@@ -40,6 +40,12 @@ def treinar_modelos(
     """
     resultados: Dict[str, Any] = {}
 
+    try:
+        df = preprocessar_dados(df) 
+    except Exception as e:
+        logging.error(f"[ERRO] Falha no preprocessamento para {nome_cripto}: {e}")
+        return resultados
+
     X = df.drop(columns=[target_col, "Data"], errors="ignore")
     y = df[target_col]
     kf = KFold(n_splits=num_folds, shuffle=True, random_state=42)
@@ -65,7 +71,7 @@ def treinar_modelos(
         logging.info(f"[MODELOS] Regressão Linear: MSE médio = {mse_lr:.4f}")
 
     # Regressões Polinomiais
-    if modelo_especifico is None or (modelo_especifico.upper().startswith("POLINOMIAL") or modelo_especifico.upper().startswith("POLINOMIAL_")):
+    if modelo_especifico is None or (modelo_especifico.upper().startswith("POLINOMIAL")):
         for grau in range(2, 11):
             modelo_label = f"Polinomial_{grau}"
             if modelo_especifico and modelo_label.upper() != modelo_especifico.upper():
@@ -89,7 +95,7 @@ def treinar_modelos(
             }
             logging.info(f"[MODELOS] Polinomial Grau {grau}: MSE médio = {mse_poly:.4f}")
 
-    # MLP
+    # MLP Regressor
     if modelo_especifico is None or modelo_especifico.upper() == "MLP":
         nome_modelo_mlp = f"{nome_cripto}_mlp"
         modelo_mlp = carregar_modelo(nome_modelo_mlp) if reutilizar else None
@@ -109,5 +115,3 @@ def treinar_modelos(
 
     logging.info("[MODELOS] Treinamento concluído com sucesso.")
     return resultados
-
-

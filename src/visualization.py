@@ -322,3 +322,56 @@ def plot_grafico_comparativo_modelos(df_resultados):
     # Confirmação no console
     print("[OK] Gráfico comparativo salvo em figures/retorno_modelos_comparativo.png")
 
+
+def plot_grafico_comparativo_modelos(df_resultados: pd.DataFrame):
+    """
+    Gera um gráfico de barras para cada criptomoeda comparando o retorno percentual
+    de todos os modelos (MLP, Linear, Polinomiais grau 2 a 10).
+
+    Os gráficos são salvos em 'figures/modelos_por_cripto/<cripto>.png'.
+
+    Parâmetros:
+    -----------
+    df_resultados : pandas.DataFrame
+        DataFrame contendo colunas:
+        - 'Criptomoeda'
+        - 'RetornoPercentual_MLP'
+        - 'RetornoPercentual_Linear'
+        - 'RetornoPercentual_Polinomial_2' até 'RetornoPercentual_Polinomial_10'
+
+    Retorno:
+    --------
+    None
+    """
+
+    # Garante que o diretório de saída exista
+    pasta_saida = "figures/modelos_por_cripto"
+    os.makedirs(pasta_saida, exist_ok=True)
+
+    # Para cada criptomoeda, gera um gráfico individual
+    for _, row in df_resultados.iterrows():
+        cripto = row['Criptomoeda']
+
+        # Coleta os retornos disponíveis para os modelos
+        modelos = ['MLP', 'Linear'] + [f'Polinomial_{i}' for i in range(2, 11)]
+        colunas = [f'RetornoPercentual_{m}' for m in modelos]
+        retornos = [row.get(col, 0) or 0 for col in colunas]  # trata None como 0
+
+        # Cria gráfico de barras
+        fig, ax = plt.subplots(figsize=(10, 6))
+        x = np.arange(len(modelos))
+
+        ax.bar(x, retornos, color='skyblue')
+        ax.set_xticks(x)
+        ax.set_xticklabels(modelos, rotation=45, ha='right')
+        ax.set_ylabel('Retorno Percentual')
+        ax.set_title(f'Retorno por Modelo - {cripto}')
+        ax.grid(True, linestyle='--', alpha=0.5)
+
+        plt.tight_layout()
+        caminho_arquivo = os.path.join(pasta_saida, f"{cripto}_modelos.png")
+        plt.savefig(caminho_arquivo)
+        plt.close()
+
+        print(f"[OK] Gráfico salvo: {caminho_arquivo}")
+

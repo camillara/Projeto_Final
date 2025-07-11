@@ -22,7 +22,6 @@ def main():
 
     parser.add_argument("--crypto", type=str, help="Nome da criptomoeda (ex: BTCUSDT)")
     parser.add_argument("--show", action="store_true", help="Exibir os primeiros registros")
-    parser.add_argument("--com_features", action="store_true", help="Aplicar features como retorno diário e média móvel")
     parser.add_argument("--graficos", action="store_true", help="Gerar gráficos estatísticos")
     parser.add_argument("--treinar_modelos", action="store_true", help="Treinar modelos (MLP, Linear, Polinomial)")
     parser.add_argument("--simular", action="store_true", help="Simular estratégia de investimento com MLP")
@@ -46,10 +45,6 @@ def main():
         for nome, df in dados.items():
             print(f"\nProcessando {nome}...")
 
-            if args.com_features:
-                df = adicionar_features_basicas(df)
-
-            # Treina os modelos ou carrega versões anteriores
             resultados = treinar_modelos(
                 df,
                 nome_cripto=nome,
@@ -58,17 +53,24 @@ def main():
                 num_folds=args.kfolds
             )
 
-            # Inicializa dicionário para armazenar retornos de cada modelo
-            dados_modelos = {}
-            for modelo_nome in ["MLP", "Linear", "Polinomial_2"]:
-                predicoes = resultados.get(modelo_nome, {}).get("previsoes")
-                if predicoes is not None:
-                    _, df_sim = simular_estrategia_investimento(df, predicoes, threshold=args.threshold or 0.01)
-                    dados_modelos[modelo_nome] = df_sim["RetornoPercentual"].iloc[-1]
-                else:
-                    dados_modelos[modelo_nome] = None
+            linha_resultado = {"Criptomoeda": nome}
 
-            # Cálculo das estatísticas descritivas
+            for modelo_nome, resultado in resultados.items():
+                predicoes = resultado.get("previsoes")
+                mse = resultado.get("mse")
+                linha_resultado[f"MSE_{modelo_nome}"] = mse
+
+                if predicoes is not None:
+                    lucro_total, df_sim = simular_estrategia_investimento(
+                        df, predicoes, threshold=args.threshold or 0.01
+                    )
+                    linha_resultado[f"RetornoPercentual_{modelo_nome}"] = df_sim["RetornoPercentual"].iloc[-1]
+                    linha_resultado[f"Lucro_{modelo_nome}"] = lucro_total
+                else:
+                    linha_resultado[f"RetornoPercentual_{modelo_nome}"] = None
+                    linha_resultado[f"Lucro_{modelo_nome}"] = None
+
+            # Estatísticas descritivas do preço de fechamento
             media = df["Fechamento"].mean()
             mediana = df["Fechamento"].median()
             moda = df["Fechamento"].mode().iloc[0] if not df["Fechamento"].mode().empty else None
@@ -76,15 +78,7 @@ def main():
             variancia = df["Fechamento"].var()
             coef_var = (desvio_padrao / media) * 100 if media else None
 
-            # Adiciona ao DataFrame de resultados
-            resultados_simulacoes.append({
-                "Criptomoeda": nome,
-                "MSE_MLP": resultados.get("MLP", {}).get("mse"),
-                "RetornoPercentual_MLP": dados_modelos.get("MLP"),
-                "RetornoPercentual_Linear": dados_modelos.get("Linear"),
-                "MSE_Linear": resultados.get("Linear", {}).get("mse"),
-                "RetornoPercentual_Polinomial_2": dados_modelos.get("Polinomial_2"),
-                "MSE_Polinomial_2": resultados.get("Polinomial_2", {}).get("mse"),
+            linha_resultado.update({
                 "Média": media,
                 "Mediana": mediana,
                 "Moda": moda,
@@ -93,18 +87,20 @@ def main():
                 "Coef. Variação (%)": coef_var
             })
 
-        # Gera DataFrame final com os resultados e salva em CSV
+            resultados_simulacoes.append(linha_resultado)
+
         df_resultados = pd.DataFrame(resultados_simulacoes)
-        df_resultados.sort_values(by="RetornoPercentual_MLP", ascending=False, inplace=True)
+        col_ordenacao = "RetornoPercentual_MLP" if "RetornoPercentual_MLP" in df_resultados.columns else df_resultados.columns[1]
+        df_resultados.sort_values(by=col_ordenacao, ascending=False, inplace=True)
+
         df_resultados.to_csv("resultados_simulacoes.csv", index=False)
         print("\n[OK] Resultados salvos em resultados_simulacoes.csv")
 
-        # Gera gráfico tradicional da MLP
-        plot_grafico_retorno(df_resultados)
-        print("[OK] Gráfico salvo em figures/retornos_criptos.png")
+        if "RetornoPercentual_MLP" in df_resultados.columns:
+            plot_grafico_retorno(df_resultados)
 
-        # Gera gráfico comparativo entre modelos, se colunas estiverem disponíveis
-        if "RetornoPercentual_Linear" in df_resultados.columns and "RetornoPercentual_Poly_2" in df_resultados.columns:
+        modelos_disponiveis = [col for col in df_resultados.columns if col.startswith("RetornoPercentual_")]
+        if len(modelos_disponiveis) > 1:
             plot_grafico_comparativo_modelos(df_resultados)
 
         return
