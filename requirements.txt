@@ -10,3 +10,4 @@ pytest
 pytest-cov
 black
 flake8
+statsmodels>=0.14.0
