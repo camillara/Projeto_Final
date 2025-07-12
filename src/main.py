@@ -14,6 +14,9 @@ from src.models import treinar_modelos
 from src.evaluation import simular_estrategia_investimento, comparar_modelos_regressao
 from src.utils import plot_grafico_retorno
 from scripts.gerar_equacoes_regressores import gerar_equacoes
+from scripts.erro_padrao import calcular_erro_padrao
+from scripts.gerar_graficos_erro_padrao import gerar_graficos_erro_padrao
+
 
 
 def main():
@@ -36,6 +39,9 @@ def main():
     parser.add_argument("--gerar_equacoes", action="store_true", help="Gerar equações dos modelos regressivos")
     parser.add_argument("--grau-min", type=int, default=1, help="Grau mínimo")
     parser.add_argument("--grau-max", type=int, default=5, help="Grau máximo")
+    parser.add_argument("--gerar-erro-padrao", action="store_true", help="Gera o erro padrão (RMSE) para cada cripto e modelo.")
+    parser.add_argument("--graficos-erro-padrao", action="store_true", help="Gera os gráficos de erro padrão (RMSE) por modelo e criptomoeda.")
+
     
     args = parser.parse_args()
 
@@ -45,6 +51,15 @@ def main():
         gerar_equacoes(grau_min=args.grau_min, grau_max=args.grau_max)
         return 
     
+    
+    if args.gerar_erro_padrao:
+        calcular_erro_padrao()
+        return 
+    
+    if args.graficos_erro_padrao:
+        gerar_graficos_erro_padrao()
+        return
+
 
     if args.todas:
         print("[INFO] Executando para todas as criptomoedas da pasta /data...\n")
