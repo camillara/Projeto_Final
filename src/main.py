@@ -18,6 +18,7 @@ from src.hypothesis import testar_hipotese_retorno_diario_real
 from scripts.gerar_equacoes_regressores import gerar_equacoes
 from scripts.erro_padrao import calcular_erro_padrao
 from scripts.gerar_graficos_erro_padrao import gerar_graficos_erro_padrao
+from scripts.plot_testes_hipotese import plotar_graficos_teste_hipotese
 
 
 def main():
@@ -42,8 +43,11 @@ def main():
     parser.add_argument("--grau-max", type=int, default=5, help="Grau máximo")
     parser.add_argument("--gerar-erro-padrao", action="store_true", help="Gera o erro padrão (RMSE) para cada cripto e modelo.")
     parser.add_argument("--graficos-erro-padrao", "--graficos_erro_padrao", dest="graficos_erro_padrao", action="store_true", help="Gera os gráficos de erro padrão.")
-    parser.add_argument("--testar-hipotese-retorno", action="store_true", help="Executa o teste de hipótese se o retorno médio diário ≥ x%")
-    parser.add_argument("--retorno-esperado", type=float, default=0.1, help="Valor de retorno médio diário esperado (em %), ex: 0.1 para 0.1%")
+    parser.add_argument("--testar-hipotese-retorno", action="store_true", help="Executa o teste t de hipótese sobre o retorno médio diário.")
+    parser.add_argument("--retorno-esperado", type=float, default=0.1, help="Valor de retorno médio diário esperado (em %), ex: 0.1 para 0.1%.")
+    parser.add_argument("--gerar-graficos", action="store_true", help="Gera gráficos com os resultados do teste de hipótese.")
+
+
     
     args = parser.parse_args()
 
@@ -62,7 +66,7 @@ def main():
         gerar_graficos_erro_padrao()
         return
     
-    
+
     if args.testar_hipotese_retorno:
         print("\n[INFO] Executando teste de hipótese sobre o retorno médio diário...\n")
         resultado_hipotese = testar_hipotese_retorno_diario_real(
@@ -70,9 +74,14 @@ def main():
             salvar_csv=True
         )
         print(resultado_hipotese.to_string(index=False))
+
+        if args.gerar_graficos:
+            print("\n[INFO] Gerando gráficos do teste de hipótese...\n")
+            plotar_graficos_teste_hipotese()
+        
         return
 
-    
+
     if args.todas:
         print("[INFO] Executando para todas as criptomoedas da pasta /data...\n")
         resultados_simulacoes = []
