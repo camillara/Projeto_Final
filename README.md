@@ -1,35 +1,56 @@
-# Projeto Final - Inteligência Artificial Aplicada
+# Projeto Final - Previsão de Criptomoedas com Regressão
 
-Este projeto tem como objetivo analisar o desempenho de diferentes modelos de regressão para prever os retornos de criptomoedas, utilizando métricas de erro e estratégias de simulação de lucro. O projeto foi desenvolvido como parte do curso de pós-graduação em Inteligência Artificial Aplicada do IFG.
+Este projeto tem como objetivo aplicar diferentes modelos de regressão para prever retornos de criptomoedas, avaliando o desempenho de cada modelo com base em métricas de erro e retorno simulado. O sistema também realiza testes de hipótese estatística, geração de gráficos, e validação cruzada.
 
 ## Estrutura do Projeto
 
-- `src/`: Contém os módulos principais do projeto.
-  - `data_load.py`: Funções para carregamento de dados de criptomoedas.
-  - `features.py`: Adição de features como média móvel e tendência.
-  - `models.py`: Treinamento dos modelos de regressão.
-  - `evaluation.py`: Avaliação dos modelos com simulação de investimento.
-  - `visualization.py`: Geração de gráficos e análises estatísticas.
-  - `utils.py`: Funções auxiliares.
-  - `logging_config.py`: Configuração de logs.
-  - `hypothesis.py`: Testes de hipótese.
+```
+PROJETO_FINAL/
+├── data/                     # Arquivos de dados de entrada (ex: CSV de preços de criptomoedas)
+├── figures/                  # Figuras e gráficos gerados
+├── htmlcov/                  # Relatórios de cobertura de testes (pytest-cov)
+├── logs/                     # Logs de execução
+├── modelos/                  # Modelos treinados salvos (joblib)
+├── results/                  # Resultados das simulações e comparações de modelos
+├── scripts/                  # Scripts auxiliares para visualizações e testes estatísticos
+├── src/                      # Código-fonte principal
+│   ├── data_load.py
+│   ├── evaluation.py
+│   ├── features.py
+│   ├── hypothesis.py
+│   ├── logging_config.py
+│   ├── main.py
+│   ├── models.py
+│   ├── utils.py
+│   └── visualization.py
+├── tests/                    # Testes automatizados (pytest)
+├── tmp/                      # Arquivos temporários e de controle
+├── .coverage                 # Arquivo de cobertura
+├── .coveragerc               # Configuração da cobertura
+├── .gitignore
+├── README.md
+├── requirements.txt
+└── limpar_modelos.py         # Script para limpar modelos treinados
+```
 
-- `scripts/`: Scripts complementares para análise estatística e geração de gráficos.
-- `tests/`: Testes automatizados com `pytest`.
-- `data/`: Pasta esperada para conter os dados CSV de criptomoedas.
-- `figures/`: Saída dos gráficos gerados.
-- `modelos/`: Armazenamento dos modelos treinados.
-- `htmlcov/`: Relatório de cobertura de testes.
+## Requisitos
 
-## Instalação
+Os principais pacotes utilizados são:
 
-1. Crie e ative um ambiente virtual:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # ou venv\Scripts\activate no Windows
-   ```
+- `pandas`
+- `numpy`
+- `matplotlib`
+- `seaborn`
+- `scikit-learn`
+- `statsmodels`
+- `scipy`
+- `joblib`
+- `pytest`
+- `pytest-cov`
+- `hydra-core`
 
-2. Instale as dependências:
+Instale com:
+
    ```bash
    pip install -r requirements.txt
    ```
