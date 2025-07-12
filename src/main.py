@@ -18,7 +18,6 @@ from scripts.erro_padrao import calcular_erro_padrao
 from scripts.gerar_graficos_erro_padrao import gerar_graficos_erro_padrao
 
 
-
 def main():
     parser = argparse.ArgumentParser(
         description="Análise e processamento de dados de criptomoedas"
@@ -40,8 +39,7 @@ def main():
     parser.add_argument("--grau-min", type=int, default=1, help="Grau mínimo")
     parser.add_argument("--grau-max", type=int, default=5, help="Grau máximo")
     parser.add_argument("--gerar-erro-padrao", action="store_true", help="Gera o erro padrão (RMSE) para cada cripto e modelo.")
-    parser.add_argument("--graficos-erro-padrao", action="store_true", help="Gera os gráficos de erro padrão (RMSE) por modelo e criptomoeda.")
-
+    parser.add_argument("--graficos-erro-padrao", "--graficos_erro_padrao", dest="graficos_erro_padrao", action="store_true", help="Gera os gráficos de erro padrão.")
     
     args = parser.parse_args()
 
@@ -59,6 +57,7 @@ def main():
     if args.graficos_erro_padrao:
         gerar_graficos_erro_padrao()
         return
+
 
 
     if args.todas:
