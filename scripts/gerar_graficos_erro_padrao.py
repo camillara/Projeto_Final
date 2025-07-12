@@ -5,8 +5,7 @@ import seaborn as sns
 import logging
 from src.logging_config import configurar_logging
 
-def gerar_graficos_erro_padrao(csv_path="results/erro_padrao_modelos.csv", pasta_saida="figures/erro_padrao"):
-    
+def gerar_graficos_erro_padrao(csv_path: str = "results/erro_padrao_modelos.csv", pasta_saida: str = "figures/erro_padrao") -> None:
     """
     Gera gráficos de barras com o erro padrão (RMSE) por modelo para cada criptomoeda.
 
@@ -34,6 +33,10 @@ def gerar_graficos_erro_padrao(csv_path="results/erro_padrao_modelos.csv", pasta
     --------------
     - Arquivo CSV inexistente.
     - Colunas ausentes no CSV.
+
+    Retorno:
+    -------
+    None
     """
     # Inicializa o logging e cria diretórios necessários
     os.makedirs("logs", exist_ok=True)
@@ -136,7 +139,3 @@ def gerar_graficos_erro_padrao(csv_path="results/erro_padrao_modelos.csv", pasta
         plt.tight_layout()
         plt.savefig(os.path.join(pasta_saida, "ranking_rmse_modelos.png"))
         plt.close()
-
-
-
-

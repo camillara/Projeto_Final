@@ -76,7 +76,7 @@ def executar_anova(caminho_csv: str, pasta_saida: str) -> None:
             f.write(f"p-valor: {levene_test.pvalue:.4f}\n")
 
         # Teste de Tukey se ANOVA for significativa
-        if anova["PR(>F)"][0] < 0.05:
+        if anova["PR(>F)"].iloc[0] < 0.05:
             tukey = pairwise_tukeyhsd(endog=df["Retorno"], groups=df["Criptomoeda"], alpha=0.05)
             logging.info("\n[Post Hoc - Tukey HSD]\n" + str(tukey.summary()))
             tukey_df = pd.DataFrame(tukey.summary().data[1:], columns=tukey.summary().data[0])

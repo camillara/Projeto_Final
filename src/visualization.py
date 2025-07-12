@@ -13,6 +13,7 @@ from sklearn.metrics import mean_squared_error
 if not logging.getLogger().hasHandlers():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
+
 def salvar_grafico(nome: str, pasta: str = "figures", dpi: int = 150) -> None:
     """
     Salva o gráfico atual na pasta especificada com o nome fornecido.
@@ -76,6 +77,7 @@ def moda_rolante(series: pd.Series) -> Optional[float]:
     except Exception as e:
         logging.warning(f"Erro ao calcular moda rolante: {e}")
         return float('nan')
+    
     
 def calcular_dispersao(df: pd.DataFrame, nome_cripto: str) -> None:
     """
@@ -257,6 +259,8 @@ def plotar_dispersao_e_lucros(resultados: Dict[str, Dict], pasta: str = "figures
     caminho_erro = os.path.join(pasta, "erros_padrao.csv")
     df_erros.to_csv(caminho_erro, index=False)
     logging.info(f"[Erro] Erros padrão salvos em: {caminho_erro}")
+    
+    
 
 def plot_grafico_comparativo_modelos(df_resultados):
     """
@@ -323,7 +327,7 @@ def plot_grafico_comparativo_modelos(df_resultados):
     print("[OK] Gráfico comparativo salvo em figures/retorno_modelos_comparativo.png")
 
 
-def plot_grafico_comparativo_modelos(df_resultados: pd.DataFrame):
+def plot_comparativo_modelos_por_cripto(df_resultados: pd.DataFrame):
     """
     Gera um gráfico de barras para cada criptomoeda comparando o retorno percentual
     de todos os modelos (MLP, Linear, Polinomiais grau 2 a 10).

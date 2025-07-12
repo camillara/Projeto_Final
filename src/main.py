@@ -9,12 +9,13 @@ from src.visualization import (
     plot_linha_media_mediana_moda,
     calcular_dispersao,
     plotar_dispersao_e_lucros,
-    plot_grafico_comparativo_modelos
+    plot_grafico_comparativo_modelos,
+    plot_comparativo_modelos_por_cripto
 )
 from src.models import treinar_modelos
 from src.evaluation import simular_estrategia_investimento, comparar_modelos_regressao
 from src.utils import plot_grafico_retorno
-from src.hypothesis import testar_hipotese_retorno_diario_real
+from src.hypothesis import executar_teste_hipotese_retorno_diario_real
 from scripts.gerar_equacoes_regressores import gerar_equacoes
 from scripts.erro_padrao import calcular_erro_padrao
 from scripts.gerar_graficos_erro_padrao import gerar_graficos_erro_padrao
@@ -70,7 +71,7 @@ def main():
 
     if args.testar_hipotese_retorno:
         print("\n[INFO] Executando teste de hipótese sobre o retorno médio diário...\n")
-        resultado_hipotese = testar_hipotese_retorno_diario_real(
+        resultado_hipotese = executar_teste_hipotese_retorno_diario_real(
             retorno_esperado=args.retorno_esperado,
             salvar_csv=True
         )
@@ -189,7 +190,7 @@ def main():
 
         modelos_disponiveis = [col for col in df_resultados.columns if col.startswith("RetornoPercentual_")]
         if len(modelos_disponiveis) > 1:
-            plot_grafico_comparativo_modelos(df_resultados)
+            plot_comparativo_modelos_por_cripto(df_resultados)
 
         return
 

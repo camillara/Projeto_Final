@@ -79,7 +79,7 @@ def executar_anova_por_grupo(caminho_csv: str, pasta_saida: str, coluna_agrupado
             f.write(f"p-valor: {levene_test.pvalue:.4f}\n")
 
         # Post hoc Tukey se ANOVA for significativa
-        if anova["PR(>F)"][0] < 0.05:
+        if anova["PR(>F)"].iloc[0] < 0.05:
             tukey = pairwise_tukeyhsd(endog=df["Retorno"], groups=df["Grupo"], alpha=0.05)
             logging.info("\n[Post Hoc - Tukey HSD]\n" + str(tukey.summary()))
             tukey_df = pd.DataFrame(tukey.summary().data[1:], columns=tukey.summary().data[0])

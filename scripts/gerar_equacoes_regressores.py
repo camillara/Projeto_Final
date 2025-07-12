@@ -1,5 +1,3 @@
-# scripts/gerar_equacoes_regressores.py
-
 import os
 import gc
 import joblib
@@ -7,6 +5,7 @@ import logging
 import pandas as pd
 from sklearn.preprocessing import PolynomialFeatures
 from src.logging_config import configurar_logging
+from src.utils import preprocessar_dados
 
 
 def gerar_equacoes(grau_min: int = 1, grau_max: int = 5) -> None:
@@ -76,8 +75,7 @@ def gerar_equacoes(grau_min: int = 1, grau_max: int = 5) -> None:
             continue
 
         try:
-            df = pd.read_csv(caminho_csv, skiprows=1)
-            from src.utils import preprocessar_dados
+            df = pd.read_csv(caminho_csv, skiprows=1)            
             df = preprocessar_dados(df)
             X = df.drop(columns=["Fechamento", "Data"], errors="ignore")
             feature_names = X.columns.tolist()

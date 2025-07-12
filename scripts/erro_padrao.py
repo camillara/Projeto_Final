@@ -1,5 +1,3 @@
-# scripts/erro_padrao.py
-
 import os
 import logging
 import pandas as pd

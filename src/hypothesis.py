@@ -7,7 +7,7 @@ import os
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
-def testar_hipotese_retorno_diario_real(
+def executar_teste_hipotese_retorno_diario_real(
     caminho_csv: str = "results/evolucao_lucro_diario.csv",
     retorno_esperado: float = 0.1,
     nivel_significancia: float = 0.05,
@@ -52,7 +52,7 @@ def testar_hipotese_retorno_diario_real(
         - Apenas séries com pelo menos 2 valores válidos são consideradas no teste.
 
     Exemplo:
-        testar_hipotese_retorno_diario_real(retorno_esperado=0.2)
+        executar_teste_hipotese_retorno_diario_real(retorno_esperado=0.2)
     """
     
     logging.info("[INÍCIO] Carregando CSV com dados de capital final diário...")
