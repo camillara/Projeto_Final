@@ -20,6 +20,7 @@ from scripts.erro_padrao import calcular_erro_padrao
 from scripts.gerar_graficos_erro_padrao import gerar_graficos_erro_padrao
 from scripts.plot_testes_hipotese import plotar_graficos_teste_hipotese
 from scripts.anova_retorno_criptos import executar_anova
+from scripts.anova_por_grupo_caracteristica import executar_anova_por_grupo
 
 def main():
     parser = argparse.ArgumentParser(
@@ -47,6 +48,7 @@ def main():
     parser.add_argument("--retorno-esperado", type=float, default=0.1, help="Valor de retorno médio diário esperado (em %), ex: 0.1 para 0.1%.")
     parser.add_argument("--gerar-graficos", action="store_true", help="Gera gráficos com os resultados do teste de hipótese.")
     parser.add_argument("--anova-retorno", action="store_true", help="Executa ANOVA para comparar retornos médios entre criptomoedas.")
+    parser.add_argument("--anova-grupo-retorno", action="store_true", help="Executa ANOVA entre grupos por retorno médio diário.")
     
     args = parser.parse_args()
 
@@ -86,6 +88,13 @@ def main():
         pasta_saida = "results"
         os.makedirs(pasta_saida, exist_ok=True)
         executar_anova(caminho_csv, pasta_saida)
+        return
+
+
+    if args.anova_grupo_retorno:
+        caminho_csv = os.path.join("results", "teste_hipotese_retorno_diario.csv")
+        pasta_saida = "results/anova_grupo_retorno"
+        executar_anova_por_grupo(caminho_csv, pasta_saida, coluna_agrupadora="Média Retorno (%)")
         return
 
 
