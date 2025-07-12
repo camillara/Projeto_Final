@@ -14,6 +14,7 @@ from src.visualization import (
 from src.models import treinar_modelos
 from src.evaluation import simular_estrategia_investimento, comparar_modelos_regressao
 from src.utils import plot_grafico_retorno
+from src.hypothesis import testar_hipotese_retorno_diario_real
 from scripts.gerar_equacoes_regressores import gerar_equacoes
 from scripts.erro_padrao import calcular_erro_padrao
 from scripts.gerar_graficos_erro_padrao import gerar_graficos_erro_padrao
@@ -41,6 +42,8 @@ def main():
     parser.add_argument("--grau-max", type=int, default=5, help="Grau máximo")
     parser.add_argument("--gerar-erro-padrao", action="store_true", help="Gera o erro padrão (RMSE) para cada cripto e modelo.")
     parser.add_argument("--graficos-erro-padrao", "--graficos_erro_padrao", dest="graficos_erro_padrao", action="store_true", help="Gera os gráficos de erro padrão.")
+    parser.add_argument("--testar-hipotese-retorno", action="store_true", help="Executa o teste de hipótese se o retorno médio diário ≥ x%")
+    parser.add_argument("--retorno-esperado", type=float, default=0.1, help="Valor de retorno médio diário esperado (em %), ex: 0.1 para 0.1%")
     
     args = parser.parse_args()
 
@@ -58,9 +61,18 @@ def main():
     if args.graficos_erro_padrao:
         gerar_graficos_erro_padrao()
         return
+    
+    
+    if args.testar_hipotese_retorno:
+        print("\n[INFO] Executando teste de hipótese sobre o retorno médio diário...\n")
+        resultado_hipotese = testar_hipotese_retorno_diario_real(
+            retorno_esperado=args.retorno_esperado,
+            salvar_csv=True
+        )
+        print(resultado_hipotese.to_string(index=False))
+        return
 
-
-
+    
     if args.todas:
         print("[INFO] Executando para todas as criptomoedas da pasta /data...\n")
         resultados_simulacoes = []
