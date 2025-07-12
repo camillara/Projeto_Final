@@ -89,5 +89,54 @@ def gerar_graficos_erro_padrao(csv_path="results/erro_padrao_modelos.csv", pasta
         plt.savefig(caminho_saida)
         plt.close()
         logging.info(f"[OK] Gráfico salvo: {caminho_saida}")
+        
+        # === 1. Gráfico Comparativo Geral ===
+        plt.figure(figsize=(14, 8))
+        ax = sns.barplot(data=df, x="Modelo", y="RMSE", hue="Criptomoeda", errorbar=None)
+        plt.title("Comparativo Geral de RMSE por Modelo e Criptomoeda")
+        plt.ylabel("Erro Padrão (RMSE)")
+        plt.xlabel("Modelo")
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        comparativo_path = os.path.join(pasta_saida, "comparativo_geral_modelos.png")
+        plt.savefig(comparativo_path)
+        plt.close()
+        logging.info(f"[OK] Gráfico comparativo geral salvo: {comparativo_path}")
+
+        # === 2. Ranking de RMSE Médio por Modelo ===
+        ranking = (
+            df.groupby("Modelo")["RMSE"]
+            .mean()
+            .sort_values()
+            .reset_index()
+            .rename(columns={"RMSE": "RMSE Médio"})
+        )
+
+        pasta_results = "results"
+        ranking_path = os.path.join(pasta_results, "ranking_rmse_modelos.csv")
+        ranking.to_csv(ranking_path, index=False)
+        logging.info(f"[OK] Ranking dos modelos salvo: {ranking_path}")
+
+        # Gráfico do ranking dos modelos com menor RMSE médio
+        plt.figure(figsize=(10, 6))
+        ranking["Hue"] = ranking["Modelo"]  # dummy hue para ativar o uso de palette corretamente
+        ax = sns.barplot(data=ranking, x="RMSE Médio", y="Modelo", hue="Hue", palette="viridis", legend=False)
+        if ax.legend_ is not None:
+            ax.legend_.remove()
+    
+
+        # Adiciona os valores ao lado de cada barra
+        for i, v in enumerate(ranking["RMSE Médio"]):
+            ax.text(v + 5, i, f"{v:.2f}", va="center", fontsize=9)
+
+        plt.title("Ranking dos Modelos por Menor RMSE Médio")
+        plt.xlabel("RMSE Médio")
+        plt.ylabel("Modelo")
+        plt.tight_layout()
+        plt.savefig(os.path.join(pasta_saida, "ranking_rmse_modelos.png"))
+        plt.close()
+
+
 
 
