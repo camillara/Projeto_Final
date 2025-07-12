@@ -2,11 +2,9 @@ import pandas as pd
 import numpy as np
 import logging
 from typing import List
+from src.logging_config import configurar_logging
 
-# Evita reconfigurar o logging se ele já estiver configurado
-if not logging.getLogger().hasHandlers():
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-
+configurar_logging()
 
 def adicionar_features_basicas(df: pd.DataFrame) -> pd.DataFrame:
     """

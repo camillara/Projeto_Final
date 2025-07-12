@@ -1,4 +1,5 @@
 import argparse
+import os
 import pandas as pd
 from src.data_load import carregar_multiplas_criptomoedas
 from src.features import adicionar_features_basicas
@@ -27,7 +28,7 @@ def main():
     parser.add_argument("--show", action="store_true", help="Exibir os primeiros registros")
     parser.add_argument("--graficos", action="store_true", help="Gerar gráficos estatísticos")
     parser.add_argument("--treinar_modelos", action="store_true", help="Treinar modelos (MLP, Linear, Polinomial)")
-    parser.add_argument("--simular", action="store_true", help="Simular estratégia de investimento com MLP")
+    parser.add_argument("--simular", action="store_true", help="Simular estratégia de investimento com todos os modelos")
     parser.add_argument("--threshold", type=float, help="Valor mínimo de previsão para decidir compra (ex: 0.01)")
     parser.add_argument("--todas", action="store_true", help="Executar simulações para todas as criptomoedas")
     parser.add_argument("--forcar_treinamento", action="store_true", help="Forçar re-treinamento mesmo que modelos já existam")
@@ -64,7 +65,7 @@ def main():
         print("[INFO] Executando para todas as criptomoedas da pasta /data...\n")
         resultados_simulacoes = []
         previsto_real_geral = []
-
+        evolucao_diaria_lucro = []
 
         for nome, df in dados.items():
             print(f"\nProcessando {nome}...")
@@ -83,7 +84,7 @@ def main():
                 predicoes = resultado.get("previsoes")
                 mse = resultado.get("mse")
                 linha_resultado[f"MSE_{modelo_nome}"] = mse
-                
+
                 y_real = resultado.get("y_real")
                 y_pred = resultado.get("previsoes")
                 if y_real is not None and y_pred is not None:
@@ -101,6 +102,16 @@ def main():
                     )
                     linha_resultado[f"RetornoPercentual_{modelo_nome}"] = df_sim["RetornoPercentual"].iloc[-1]
                     linha_resultado[f"Lucro_{modelo_nome}"] = lucro_total
+
+                    # ✅ Adição: salvar evolução diária do lucro
+                    if not df_sim.empty and "CapitalFinal" in df_sim.columns:
+                        for i, row in df_sim.iterrows():
+                            evolucao_diaria_lucro.append({
+                                "Data": row.get("Data", f"Dia {i+1}"),
+                                "Criptomoeda": nome,
+                                "Modelo": modelo_nome,
+                                "CapitalFinal": row["CapitalFinal"]
+                            })
                 else:
                     linha_resultado[f"RetornoPercentual_{modelo_nome}"] = None
                     linha_resultado[f"Lucro_{modelo_nome}"] = None
@@ -120,14 +131,21 @@ def main():
         df_resultados = pd.DataFrame(resultados_simulacoes)
         col_ordenacao = "RetornoPercentual_MLP" if "RetornoPercentual_MLP" in df_resultados.columns else df_resultados.columns[1]
         df_resultados.sort_values(by=col_ordenacao, ascending=False, inplace=True)
-
-        df_resultados.to_csv("resultados_simulacoes.csv", index=False)
-        print("\n[OK] Resultados salvos em resultados_simulacoes.csv")
         
+        df_evolucao = pd.DataFrame(evolucao_diaria_lucro)
+        os.makedirs("results", exist_ok=True)
+        
+        df_resultados.to_csv("results/resultados_simulacoes.csv", index=False)
+        print("\n[OK] Resultados salvos em results/resultados_simulacoes.csv")
+
         # Salvando previsto vs real
         df_previsto_real = pd.DataFrame(previsto_real_geral)
-        df_previsto_real.to_csv("previsto_real_por_modelo_por_cripto.csv", index=False)
-        print("[OK] Valores reais e previstos salvos em previsto_real_por_modelo_por_cripto.csv")
+        df_previsto_real.to_csv("results/previsto_real_por_modelo_por_cripto.csv", index=False)
+        print("[OK] Valores reais e previstos salvos em results/previsto_real_por_modelo_por_cripto.csv")
+
+        # Salvando evolução do capital diário
+        df_evolucao.to_csv("results/evolucao_lucro_diario.csv", index=False)
+        print("[OK] Lucro diário salvo em results/evolucao_lucro_diario.csv")
 
         if "RetornoPercentual_MLP" in df_resultados.columns:
             plot_grafico_retorno(df_resultados)
