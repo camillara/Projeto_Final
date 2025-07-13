@@ -6,6 +6,7 @@ from typing import Any
 import pandas as pd
 from src.features import adicionar_features_basicas
 import logging
+import csv
 
 # === GERAÇÃO DE GRÁFICO DE RETORNO ===
 import os
@@ -114,3 +115,21 @@ def preprocessar_dados(df: pd.DataFrame) -> pd.DataFrame:
     logging.info("[PREPROCESSAMENTO] Pré-processamento finalizado com sucesso.")
     
     return df[colunas_validas + (["Data"] if "Data" in df.columns else [])]
+
+
+# ===SALVAR MEDIDAS DE DISPERSÃO===
+def salvar_medidas_dispersao(nome_cripto, desvio, variancia, amplitude, iqr):
+    path = "results/medidas_dispersao.csv"
+    headers = ['Criptomoeda', 'Desvio Padrao', 'Variancia', 'Amplitude', 'IQR']
+
+    linha = [nome_cripto, desvio, variancia, amplitude, iqr]
+
+    try:
+        with open(path, 'x', newline='') as csvfile:  # cria se não existir
+            writer = csv.writer(csvfile)
+            writer.writerow(headers)
+            writer.writerow(linha)
+    except FileExistsError:
+        with open(path, 'a', newline='') as csvfile:  # adiciona se já existir
+            writer = csv.writer(csvfile)
+            writer.writerow(linha)

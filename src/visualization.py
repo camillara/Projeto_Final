@@ -10,6 +10,7 @@ from numpy.polynomial import Polynomial
 from sklearn.inspection import permutation_importance
 from sklearn.metrics import mean_squared_error
 from sklearn.neural_network import MLPRegressor
+from src.utils import salvar_medidas_dispersao
 
 # Evita reconfigurar o logging se ele já estiver configurado
 if not logging.getLogger().hasHandlers():
@@ -102,6 +103,7 @@ def calcular_dispersao(df: pd.DataFrame, nome_cripto: str) -> None:
     logging.info(f"  Variância: {variancia:.4f}")
     logging.info(f"  Amplitude: {amplitude:.4f}")
     logging.info(f"  IQR (Q3 - Q1): {iqr:.4f}")
+    salvar_medidas_dispersao(nome_cripto, desvio_padrao, variancia, amplitude, iqr)
 
 
 def plot_linha_media_mediana_moda(df: pd.DataFrame, nome_cripto: str) -> None:
@@ -478,3 +480,76 @@ def salvar_graficos_regressao(nome_modelo: str, y_real, y_pred, nome_cripto: str
     plt.savefig(path, dpi=150)
     plt.close()
     logging.info(f"[OK] Gráfico de dispersão salvo em {path}")
+    
+
+def plot_analise_exploratoria_conjunta(df: pd.DataFrame, nome_cripto: str) -> None:
+    """
+    Gera e salva uma figura com 4 subplots:
+      1. Boxplot do fechamento
+      2. Histograma do fechamento
+      3. Linha do fechamento com média, mediana e moda móveis
+      4. Texto com medidas de dispersão: desvio, variância, amplitude e IQR.
+
+    Args:
+        df (pd.DataFrame): DataFrame contendo colunas 'Data' e 'Fechamento'.
+        nome_cripto (str): Nome da criptomoeda (para nome do arquivo e título).
+    """
+    # calcula as medidas de dispersão
+    fechamento = df['Fechamento'].dropna()
+    desvio = fechamento.std()
+    variancia = fechamento.var()
+    amplitude = fechamento.max() - fechamento.min()
+    q1, q3 = fechamento.quantile(0.25), fechamento.quantile(0.75)
+    iqr = q3 - q1
+
+    # prepara figura 2x2
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    sns.set_style("whitegrid")
+
+    # 1) Boxplot
+    sns.boxplot(y=fechamento, ax=axes[0, 0])
+    axes[0, 0].set_title(f"{nome_cripto} — Boxplot de Fechamento")
+    axes[0, 0].set_ylabel("Preço de Fechamento")
+
+    # 2) Histograma
+    sns.histplot(fechamento, bins=30, kde=True, ax=axes[0, 1])
+    axes[0, 1].set_title(f"{nome_cripto} — Histograma de Fechamento")
+    axes[0, 1].set_xlabel("Preço de Fechamento")
+
+    # 3) Linha com média, mediana e moda (7d)
+    dfm = df.copy()
+    dfm['Media']   = dfm['Fechamento'].rolling(7).mean()
+    dfm['Mediana'] = dfm['Fechamento'].rolling(7).median()
+    # usa sua função de moda rolante
+    from src.visualization import moda_rolante
+    dfm['Moda']    = dfm['Fechamento'].rolling(7).apply(moda_rolante, raw=False)
+
+    ax = axes[1, 0]
+    ax.plot(dfm['Data'], dfm['Fechamento'], label='Fechamento', lw=1)
+    ax.plot(dfm['Data'], dfm['Media'],   label='Média (7d)',  ls='--')
+    ax.plot(dfm['Data'], dfm['Mediana'], label='Mediana (7d)',ls='-.')
+    ax.plot(dfm['Data'], dfm['Moda'],    label='Moda (7d)',   ls=':')
+    ax.set_title(f"{nome_cripto} — Fechamento e Médias Móveis")
+    ax.set_xlabel("Data")
+    ax.set_ylabel("Preço")
+    ax.legend()
+
+    # 4) Texto com dispersão
+    ax = axes[1, 1]
+    ax.axis('off')
+    text = (
+        f"Desvio Padrão: {desvio:.4f}\n"
+        f"Variância:       {variancia:.4f}\n"
+        f"Amplitude:       {amplitude:.4f}\n"
+        f"IQR (Q3–Q1):     {iqr:.4f}"
+    )
+    ax.text(0.1, 0.5, text, fontsize=12, family='monospace')
+    ax.set_title(f"{nome_cripto} — Medidas de Dispersão")
+
+    plt.tight_layout()
+    pasta = "figures"
+    os.makedirs(pasta, exist_ok=True)
+    caminho = os.path.join(pasta, f"{nome_cripto}_analise_exploratoria.png")
+    plt.savefig(caminho, dpi=150)
+    plt.close()
+    logging.info(f"[GRAFICO] Analise exploratória salva em: {caminho}")

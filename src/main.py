@@ -8,7 +8,8 @@ from src.visualization import (
     plot_linha_media_mediana_moda,
     calcular_dispersao,
     plotar_dispersao_e_lucros,
-    plot_comparativo_modelos_por_cripto
+    plot_comparativo_modelos_por_cripto,
+    plot_analise_exploratoria_conjunta
 )
 from src.models import treinar_modelos
 from src.evaluation import simular_estrategia_investimento, comparar_modelos_regressao
@@ -256,10 +257,7 @@ def main():
         print("[INFO] Executando análise gráfica e estatística para todas as criptomoedas...\n")
         for nome, df in dados.items():
             print(f"\nGerando gráficos e estatísticas para {nome}...")
-
-            plot_boxplot(df, nome)
-            plot_histograma(df, nome)
-            plot_linha_media_mediana_moda(df, nome)
+            plot_analise_exploratoria_conjunta(df, nome)
             calcular_dispersao(df, nome)
 
         print("\n[OK] Gráficos salvos em figures/, medidas de dispersão no log.")
