@@ -9,7 +9,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
 from src.utils import preprocessar_dados, carregar_modelo, salvar_modelo
 from sklearn.preprocessing import MinMaxScaler
-from src.visualization import salvar_graficos_mlp, salvar_importancia_features
+from src.visualization import salvar_graficos_mlp, salvar_importancia_features, salvar_graficos_regressao
 
 
 def treinar_modelos(
@@ -73,6 +73,14 @@ def treinar_modelos(
             "y_real": y.values,
             "previsoes": preds_lr
         }
+        
+        salvar_graficos_regressao(
+            nome_modelo="Linear",
+            y_real=y.values,
+            y_pred=preds_lr,
+            nome_cripto=nome_cripto
+        )
+        
         logging.info(f"[MODELOS] Regressão Linear: MSE médio = {mse_lr:.4f}")
 
     # Polynomial Regressions
@@ -97,6 +105,13 @@ def treinar_modelos(
             "y_real": y.values,
             "previsoes": preds_poly
         }
+        salvar_graficos_regressao(
+            nome_modelo=modelo_nome, 
+            y_real=y.values,
+            y_pred=preds_poly,
+            nome_cripto=nome_cripto
+        )
+        
         logging.info(f"[MODELOS] Polinomial Grau {grau}: MSE médio = {mse_poly:.4f}")
 
     # MLP Regressor

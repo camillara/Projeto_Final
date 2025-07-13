@@ -452,3 +452,29 @@ def salvar_importancia_features(
     plt.savefig(path, dpi=150)
     plt.close()
     logging.info(f"[OK] Gráfico de importância das features salvo em {path}")
+    
+
+def salvar_graficos_regressao(nome_modelo: str, y_real, y_pred, nome_cripto: str):
+    """
+    Gera e salva o gráfico de dispersão com linha de referência para modelos de regressão não-MLP.
+    """
+    os.makedirs(f"figures/{nome_modelo}/{nome_cripto}", exist_ok=True)
+
+    plt.figure(figsize=(8, 6))
+    plt.scatter(y_real, y_pred, alpha=0.5)
+    plt.xlabel("Valor Real")
+    plt.ylabel("Valor Previsto")
+    plt.title(f"{nome_modelo}: Real vs Previsto ({nome_cripto})")
+
+    # Adiciona linha de referência y = x (linha ideal)
+    min_val = min(np.min(y_real), np.min(y_pred))
+    max_val = max(np.max(y_real), np.max(y_pred))
+    plt.plot([min_val, max_val], [min_val, max_val], color='red', linestyle='--', linewidth=2)
+
+    plt.grid(True)
+    plt.tight_layout()
+
+    path = f"figures/{nome_modelo}/{nome_cripto}/dispersao_real_vs_previsto_{nome_modelo}_{nome_cripto}.png"
+    plt.savefig(path, dpi=150)
+    plt.close()
+    logging.info(f"[OK] Gráfico de dispersão salvo em {path}")
