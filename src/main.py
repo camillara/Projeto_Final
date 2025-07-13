@@ -2,14 +2,12 @@ import argparse
 import os
 import pandas as pd
 from src.data_load import carregar_multiplas_criptomoedas
-from src.features import adicionar_features_basicas
 from src.visualization import (
     plot_boxplot,
     plot_histograma,
     plot_linha_media_mediana_moda,
     calcular_dispersao,
     plotar_dispersao_e_lucros,
-    plot_grafico_comparativo_modelos,
     plot_comparativo_modelos_por_cripto
 )
 from src.models import treinar_modelos
@@ -141,7 +139,7 @@ def main():
                     linha_resultado[f"RetornoPercentual_{modelo_nome}"] = df_sim["RetornoPercentual"].iloc[-1]
                     linha_resultado[f"Lucro_{modelo_nome}"] = lucro_total
 
-                    # ✅ Adição: salvar evolução diária do lucro
+                    
                     if not df_sim.empty and "CapitalFinal" in df_sim.columns:
                         for i, row in df_sim.iterrows():
                             evolucao_diaria_lucro.append({
@@ -186,7 +184,15 @@ def main():
         print("[OK] Lucro diário salvo em results/evolucao_lucro_diario.csv")
 
         if "RetornoPercentual_MLP" in df_resultados.columns:
-            plot_grafico_retorno(df_resultados)
+            plot_grafico_retorno(df_resultados, modelo="MLP")
+
+        if "RetornoPercentual_Linear" in df_resultados.columns:
+            plot_grafico_retorno(df_resultados, modelo="Linear")
+
+        for grau in range(args.grau_min, args.grau_max + 1):
+            nome_coluna = f"RetornoPercentual_POLINOMIAL_{grau}"
+            if nome_coluna in df_resultados.columns:
+                plot_grafico_retorno(df_resultados, modelo=f"POLINOMIAL_{grau}")
 
         modelos_disponiveis = [col for col in df_resultados.columns if col.startswith("RetornoPercentual_")]
         if len(modelos_disponiveis) > 1:
@@ -203,9 +209,6 @@ def main():
     if df is None:
         print(f"[ERRO] Criptomoeda '{args.crypto}' não encontrada.")
         return
-
-    if args.com_features:
-        df = adicionar_features_basicas(df)
 
     if args.show:
         print(df.head())

@@ -7,7 +7,9 @@ from scipy import stats
 from typing import Optional, Dict
 import numpy as np
 from numpy.polynomial import Polynomial
+from sklearn.inspection import permutation_importance
 from sklearn.metrics import mean_squared_error
+from sklearn.neural_network import MLPRegressor
 
 # Evita reconfigurar o logging se ele já estiver configurado
 if not logging.getLogger().hasHandlers():
@@ -378,4 +380,75 @@ def plot_comparativo_modelos_por_cripto(df_resultados: pd.DataFrame):
         plt.close()
 
         print(f"[OK] Gráfico salvo: {caminho_arquivo}")
+        
 
+def salvar_graficos_mlp(y_real, y_pred, loss_curve, nome_cripto):
+    """
+    Salva dois gráficos:
+    - Dispersão entre valores reais e previstos
+    - Curva de perda (loss) durante o treinamento
+    """
+    pasta = os.path.join("figures", "MLP", nome_cripto)
+    os.makedirs(pasta, exist_ok=True)
+
+    # Gráfico 1: Dispersão Real vs Previsto
+    plt.figure(figsize=(8, 6))
+    plt.scatter(y_real, y_pred, alpha=0.6, color="purple", edgecolor="k")
+    plt.plot([min(y_real), max(y_real)], [min(y_real), max(y_real)], color="red", linestyle="--")
+    plt.xlabel("Valor Real")
+    plt.ylabel("Valor Previsto")
+    plt.title(f"Dispersão: Real vs Previsto (MLP - {nome_cripto})")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(os.path.join(pasta, "dispersao_real_vs_previsto.png"))
+    plt.close()
+
+    # Gráfico 2: Curva de perda durante o treinamento
+    plt.figure(figsize=(8, 6))
+    plt.plot(loss_curve, marker='o')
+    plt.xlabel("Época")
+    plt.ylabel("Loss")
+    plt.title(f"Curva de Treinamento (Loss) - MLP ({nome_cripto})")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(os.path.join(pasta, "curva_loss_mlp.png"))
+    plt.close()
+
+    print(f"[OK] Gráficos do MLP salvos em {pasta}")
+    
+
+def salvar_importancia_features(
+    modelo: MLPRegressor,
+    X_scaled: np.ndarray,
+    y: np.ndarray,
+    feature_names: list[str],
+    nome_cripto: str
+) -> None:
+    """
+    Gera e salva gráfico de importância das features com Permutation Importance.
+
+    Args:
+        modelo (MLPRegressor): Modelo treinado.
+        X_scaled (np.ndarray): Dados de entrada escalonados.
+        y (np.ndarray): Valores reais.
+        feature_names (list[str]): Lista de nomes das features.
+        nome_cripto (str): Nome da criptomoeda (para nome do arquivo).
+        pasta_destino (str): Pasta onde salvar o gráfico.
+    """
+    resultados = permutation_importance(modelo, X_scaled, y, n_repeats=10, random_state=42)
+
+    importancias = resultados.importances_mean
+    indices = np.argsort(importancias)[::-1]
+
+    plt.figure(figsize=(10, 6))
+    plt.bar(range(len(importancias)), importancias[indices], align="center")
+    plt.xticks(range(len(importancias)), np.array(feature_names)[indices], rotation=90)
+    plt.title(f"Importância das Features (MLP - {nome_cripto})")
+    plt.tight_layout()
+
+    pasta = os.path.join("figures", "MLP", nome_cripto)
+    os.makedirs(pasta, exist_ok=True)
+    path = os.path.join(pasta, f"importancia_features_{nome_cripto}.png")
+    plt.savefig(path)
+    plt.close()
+    logging.info(f"[OK] Gráfico de importância das features salvo em {path}")

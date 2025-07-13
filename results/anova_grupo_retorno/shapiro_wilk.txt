@@ -1,2 +1,0 @@
-Estatística: 0.6170
-p-valor: 0.0000

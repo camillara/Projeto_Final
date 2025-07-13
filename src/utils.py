@@ -4,29 +4,37 @@ import joblib
 import logging
 from typing import Any
 import pandas as pd
+from src.features import adicionar_features_basicas
+import logging
 
 # === GERAÇÃO DE GRÁFICO DE RETORNO ===
-def plot_grafico_retorno(df_resultados):
+import os
+import matplotlib.pyplot as plt
+import pandas as pd
+
+def plot_grafico_retorno(df_resultados: pd.DataFrame, modelo: str = "MLP") -> None:
     """
-    Gera e salva um gráfico de barras com o retorno percentual por criptomoeda.
-    Usa a coluna 'RetornoPercentual_MLP' como padrão, já que representa a simulação do modelo MLP.
+    Gera e salva um gráfico de barras com o retorno percentual por criptomoeda para o modelo especificado.
 
     Args:
-        df_resultados (pd.DataFrame): DataFrame com colunas 'Criptomoeda' e 'RetornoPercentual_MLP'.
+        df_resultados (pd.DataFrame): DataFrame contendo os resultados das simulações.
+        modelo (str): Nome do modelo a ser plotado (ex: "MLP", "Linear", "POLINOMIAL_2").
     """
-    if "RetornoPercentual_MLP" not in df_resultados.columns:
-        print("[AVISO] Coluna 'RetornoPercentual_MLP' não encontrada. Gráfico de retorno padrão não será gerado.")
+    nome_coluna: str = f"RetornoPercentual_{modelo}"
+    if nome_coluna not in df_resultados.columns:
+        print(f"[AVISO] Coluna '{nome_coluna}' não encontrada. Gráfico de retorno não será gerado.")
         return
 
     os.makedirs("figures", exist_ok=True)
     plt.figure(figsize=(10, 6))
-    plt.barh(df_resultados["Criptomoeda"], df_resultados["RetornoPercentual_MLP"], color="skyblue")
-    plt.xlabel("Retorno Percentual (MLP)")
-    plt.title("Retorno Percentual por Criptomoeda (Modelo MLP)")
+    plt.barh(df_resultados["Criptomoeda"], df_resultados[nome_coluna], color="skyblue")
+    plt.xlabel(f"Retorno Percentual ({modelo})")
+    plt.title(f"Retorno Percentual por Criptomoeda ({modelo})")
     plt.tight_layout()
-    plt.savefig("figures/retornos_criptos.png")
+    nome_arquivo: str = f"figures/retornos_criptos_{modelo}.png"
+    plt.savefig(nome_arquivo)
     plt.close()
-    print("[OK] Gráfico salvo em figures/retornos_criptos.png")
+    print(f"[OK] Gráfico salvo em {nome_arquivo}")
 
 
 # === SALVAR MODELO ===
@@ -71,6 +79,7 @@ def preprocessar_dados(df: pd.DataFrame) -> pd.DataFrame:
     - Converte colunas para float se necessário.
     - Renomeia 'close' para 'Fechamento' e calcula o 'Retorno'.
     - Remove colunas desnecessárias como 'Unnamed: 0', 'unix', 'symbol', etc.
+    - Adiciona features básicas (média móvel, desvio padrão, tendência, etc.)
     - Padroniza nomes de colunas para consistência com os modelos treinados.
 
     Args:
@@ -80,6 +89,8 @@ def preprocessar_dados(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: DataFrame limpo e pronto para uso.
     """
     df = df.copy()
+    
+    logging.info(f"[PREPROCESSAMENTO] Iniciando o pré-processamento...")
 
     if "Data" in df.columns:
         df["Data"] = pd.to_datetime(df["Data"], errors="coerce")
@@ -87,30 +98,19 @@ def preprocessar_dados(df: pd.DataFrame) -> pd.DataFrame:
     else:
         df = df.reset_index(drop=True)
 
-    # Renomeia 'close' se necessário
     if "close" in df.columns and "Fechamento" not in df.columns:
         df.rename(columns={"close": "Fechamento"}, inplace=True)
 
-    if "Fechamento" in df.columns:
-        df["Retorno"] = df["Fechamento"].pct_change()
-        df["MediaMovel_7d"] = df["Fechamento"].rolling(window=7).mean()
-        df["DesvioPadrao_7d"] = df["Fechamento"].rolling(window=7).std()
-
-    if "Fechamento" in df.columns and "Abertura" in df.columns:
-        df["TendenciaAlta"] = (df["Fechamento"] > df["Abertura"]).astype(int)
-
     if "Volume" in df.columns:
         df["Volume"] = pd.to_numeric(df["Volume"], errors="coerce")
-
-    df = df.dropna().reset_index(drop=True)
+    
+    df = adicionar_features_basicas(df)
 
     colunas_validas = df.select_dtypes(include=["number", "bool"]).columns.tolist()
     if "Fechamento" in df.columns:
         colunas_validas.append("Fechamento")
     colunas_validas = list(set(colunas_validas))  # remove duplicatas
-
-    import logging
-    logging.info(f"[FEATURES] Features adicionadas com sucesso: {list(set(df.columns) - set(['Data', 'Fechamento']))}")
-    logging.info(f"[FEATURES] Total de registros após limpeza: {len(df)}")
-
+    
+    logging.info("[PREPROCESSAMENTO] Pré-processamento finalizado com sucesso.")
+    
     return df[colunas_validas + (["Data"] if "Data" in df.columns else [])]
