@@ -110,15 +110,15 @@ def treinar_modelos(
 
         if modelo_mlp is None:
             modelo_mlp = MLPRegressor(
-                hidden_layer_sizes=(256, 128, 64),
+                hidden_layer_sizes=(256, 128, 64, 32),
                 activation='relu',
                 solver='adam',
                 learning_rate='adaptive',
                 learning_rate_init=0.0005,
                 alpha=0.0005,
-                max_iter=5000,
+                max_iter=3000,
                 early_stopping=True,
-                n_iter_no_change=150,
+                n_iter_no_change=600,
                 validation_fraction=0.2,
                 shuffle=True,
                 random_state=42

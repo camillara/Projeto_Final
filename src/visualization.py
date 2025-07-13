@@ -400,7 +400,7 @@ def salvar_graficos_mlp(y_real, y_pred, loss_curve, nome_cripto):
     plt.title(f"Dispersão: Real vs Previsto (MLP - {nome_cripto})")
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(os.path.join(pasta, "dispersao_real_vs_previsto.png"))
+    plt.savefig(os.path.join(pasta, "dispersao_real_vs_previsto.png"), dpi=150)
     plt.close()
 
     # Gráfico 2: Curva de perda durante o treinamento
@@ -411,7 +411,7 @@ def salvar_graficos_mlp(y_real, y_pred, loss_curve, nome_cripto):
     plt.title(f"Curva de Treinamento (Loss) - MLP ({nome_cripto})")
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(os.path.join(pasta, "curva_loss_mlp.png"))
+    plt.savefig(os.path.join(pasta, "curva_loss_mlp.png"), dpi=150)
     plt.close()
 
     print(f"[OK] Gráficos do MLP salvos em {pasta}")
@@ -449,6 +449,6 @@ def salvar_importancia_features(
     pasta = os.path.join("figures", "MLP", nome_cripto)
     os.makedirs(pasta, exist_ok=True)
     path = os.path.join(pasta, f"importancia_features_{nome_cripto}.png")
-    plt.savefig(path)
+    plt.savefig(path, dpi=150)
     plt.close()
     logging.info(f"[OK] Gráfico de importância das features salvo em {path}")
