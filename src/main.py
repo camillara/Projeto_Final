@@ -112,7 +112,7 @@ def main():
                 df,
                 nome_cripto=nome,
                 reutilizar=not args.forcar_treinamento,
-                modelo_especifico=args.model,
+                modelos_especificos=[args.model.upper()] if args.model else None,
                 num_folds=args.kfolds
             )
 
@@ -224,7 +224,7 @@ def main():
             df,
             nome_cripto=args.crypto.upper(),
             reutilizar=not args.forcar_treinamento,
-            modelo_especifico=args.model,
+            modelos_especificos=[args.model.upper()] if args.model else None,
             num_folds=args.kfolds
         )
 
@@ -272,9 +272,10 @@ def main():
             df,
             nome_cripto=args.crypto.upper(),
             reutilizar=not args.forcar_treinamento,
-            modelo_especifico=None,
+            modelos_especificos=None,
             num_folds=args.kfolds
         )
+
 
         # Obtém as previsões do MLP
         mlp_modelo = resultados["MLP"]["modelo"]
