@@ -10,6 +10,7 @@ from sklearn.pipeline import make_pipeline
 from src.utils import preprocessar_dados, carregar_modelo, salvar_modelo
 from sklearn.preprocessing import MinMaxScaler
 from src.visualization import salvar_graficos_mlp, salvar_importancia_features, salvar_graficos_regressao
+from sklearn.feature_selection import SelectKBest, f_regression
 
 
 def treinar_modelos(
@@ -84,35 +85,48 @@ def treinar_modelos(
         logging.info(f"[MODELOS] Regressão Linear: MSE médio = {mse_lr:.4f}")
 
     # Polynomial Regressions
+    k_melhores = 3
+    seletor = SelectKBest(score_func=f_regression, k=k_melhores)
+    X_reduzido = seletor.fit_transform(X, y)
+    nomes_features_selecionadas = X.columns[seletor.get_support()].tolist()
+
+    logging.info(f"[FEATURES] Selecionadas para Polynomial Regression: {nomes_features_selecionadas}")
+
     for grau in range(2, 11):
         modelo_nome = f"POLINOMIAL_{grau}"
         if modelos_especificos and modelo_nome not in modelos_especificos:
             continue
+
         nome_modelo_poly = f"{nome_cripto}_polinomial_grau{grau}"
         modelo_poly = carregar_modelo(nome_modelo_poly) if reutilizar else None
+
         if modelo_poly is None:
             modelo_poly = make_pipeline(
                 PolynomialFeatures(degree=grau),
                 LinearRegression()
             )
-            modelo_poly.fit(X, y)
+            modelo_poly.fit(X_reduzido, y)
             salvar_modelo(modelo_poly, nome_modelo_poly)
-        mse_poly = -cross_val_score(modelo_poly, X, y, cv=kf, scoring='neg_mean_squared_error').mean()
-        preds_poly = modelo_poly.predict(X)
+
+        mse_poly = -cross_val_score(modelo_poly, X_reduzido, y, cv=kf, scoring='neg_mean_squared_error').mean()
+        preds_poly = modelo_poly.predict(X_reduzido)
+
         resultados[modelo_nome] = {
             "modelo": modelo_poly,
             "mse": mse_poly,
             "y_real": y.values,
             "previsoes": preds_poly
         }
+
         salvar_graficos_regressao(
-            nome_modelo=modelo_nome, 
+            nome_modelo=modelo_nome,
             y_real=y.values,
             y_pred=preds_poly,
             nome_cripto=nome_cripto
         )
-        
+
         logging.info(f"[MODELOS] Polinomial Grau {grau}: MSE médio = {mse_poly:.4f}")
+
 
     # MLP Regressor
     if not modelos_especificos or "MLP" in modelos_especificos:
