@@ -50,5 +50,33 @@ for cripto in df["Criptomoeda"].unique():
         plt.close()
 
         logging.info(f"[OK] Gráfico salvo: {caminho_figura}")
+    
+    # === Gera um único gráfico de lucro diário com todos os modelos por cripto ===
+    pasta_todos_modelos = "figures/lucro_diario/todos_modelos"
+    os.makedirs(pasta_todos_modelos, exist_ok=True)
+
+    for cripto in df["Criptomoeda"].unique():
+        df_cripto = df[df["Criptomoeda"] == cripto]
+
+        if df_cripto.empty:
+            logging.warning(f"[AVISO] Nenhum dado encontrado para {cripto}")
+            continue
+
+        plt.figure(figsize=(12, 6))
+        sns.lineplot(data=df_cripto, x="Data", y="CapitalFinal", hue="Modelo", marker=None)
+        plt.title(f"Evolução do Lucro por Modelo - {cripto}")
+        plt.ylabel("Capital Final (USD)")
+        plt.xlabel("Data")
+        plt.xticks(rotation=45)
+        plt.legend(title="Modelo")
+        plt.grid(True)
+        plt.tight_layout()
+
+        nome_arquivo = f"{cripto}_todos_modelos.png".replace("/", "_")
+        caminho_figura = os.path.join(pasta_todos_modelos, nome_arquivo)
+        plt.savefig(caminho_figura, dpi=150)
+        plt.close()
+
+        logging.info(f"[OK] Gráfico comparativo salvo: {caminho_figura}")
 
 logging.info("[FIM] Geração dos gráficos por modelo concluída.")
