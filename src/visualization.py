@@ -173,30 +173,8 @@ def plotar_dispersao_e_lucros(resultados: Dict[str, Dict], pasta: str = "figures
     plt.grid(True)
     plt.tight_layout()
     caminho_dispersao = os.path.join(pasta, "dispersao_modelos.png")
-    plt.savefig(caminho_dispersao)
+    plt.savefig(caminho_dispersao, dpi = 150)
     logging.info(f"[Dispersão] Gráfico salvo em: {caminho_dispersao}")
-    plt.close()
-
-    # === Gráfico de Lucro Acumulado ===
-    plt.figure(figsize=(12, 8))
-    for nome_modelo, info in resultados.items():
-        df_sim = info["simulacao"]
-        if "CapitalFinal" not in df_sim:
-            logging.warning(f"[Lucros] Modelo '{nome_modelo}' ignorado por não conter dados de capital.")
-            continue
-
-        plt.plot(df_sim["Data"], df_sim["CapitalFinal"], label=nome_modelo)
-        logging.info(f"[Lucros] Modelo '{nome_modelo}' plotado com {len(df_sim)} pontos de capital.")
-
-    plt.xlabel("Data")
-    plt.ylabel("Capital Final (USD)")
-    plt.title("Evolução do Lucro - Simulação de Investimentos")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    caminho_lucro = os.path.join(pasta, "lucros_modelos.png")
-    plt.savefig(caminho_lucro)
-    logging.info(f"[Lucros] Gráfico salvo em: {caminho_lucro}")
     plt.close()
 
     # === Coeficientes de Correlação, Equações e Erros Padrão ===

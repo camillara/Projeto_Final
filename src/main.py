@@ -1,5 +1,6 @@
 import argparse
 import os
+import numpy as np
 import pandas as pd
 from src.data_load import carregar_multiplas_criptomoedas
 from src.visualization import (
@@ -96,6 +97,54 @@ def main():
         pasta_saida = "results/anova_grupo_retorno"
         executar_anova_por_grupo(caminho_csv, pasta_saida, coluna_agrupadora="Média Retorno (%)")
         return
+
+
+    if args.comparar_modelos:
+        if args.crypto:
+           criptos = [args.crypto.upper()]
+        else:
+           criptos = list(dados.keys())
+           print(f"[INFO] Comparando modelos para todas as criptomoedas: {', '.join(criptos)}\n")
+
+
+        df_planilha = pd.read_csv("results/previsto_real_por_modelo_por_cripto.csv")
+        df_planilha.columns = df_planilha.columns.str.strip()  # remove espaços invisíveis
+
+
+        for nome in criptos:
+           print(f"[INFO] Comparando modelos para {nome}...")
+
+
+           df_cripto = df_planilha[df_planilha["Criptomoeda"] == nome]
+
+
+           if df_cripto.empty:
+               print(f"[AVISO] Nenhum dado encontrado para {nome} na planilha.")
+               continue
+
+
+           modelos_disponiveis = df_cripto["Modelo"].unique()
+           resultados: dict[str, dict[str, np.ndarray]] = {}
+
+
+           for modelo in modelos_disponiveis:
+               df_modelo = df_cripto[df_cripto["Modelo"] == modelo]
+               resultados[modelo] = {
+                   "previsoes": df_modelo["Valor Previsto"].values,
+                   "reais": df_modelo["Valor Real"].values,
+                   "simulacao": pd.DataFrame({
+                       "PrecoHoje": df_modelo["Valor Real"].values,
+                       "PrecoPrevisto": df_modelo["Valor Previsto"].values
+                   })
+               }
+
+
+           caminho_saida = os.path.join("figures", "dispersao", nome)
+           os.makedirs(caminho_saida, exist_ok=True)
+           plotar_dispersao_e_lucros(resultados, caminho_saida)
+           print("[OK] Comparação entre modelos finalizada. Gráficos e métricas salvos em /figures.")
+        return
+
 
 
     if args.todas:
@@ -263,32 +312,6 @@ def main():
         print("\n[OK] Gráficos salvos em figures/, medidas de dispersão no log.")
         return
     
-    if args.comparar_modelos:
-        if args.crypto is None:
-            raise ValueError("Para comparar modelos, especifique a criptomoeda com --crypto NOME.")
-
-        print(f"[INFO] Comparando modelos para {args.crypto.upper()}...\n")
-
-        resultados = treinar_modelos(
-            df,
-            nome_cripto=args.crypto.upper(),
-            reutilizar=not args.forcar_treinamento,
-            modelos_especificos=None,
-            num_folds=args.kfolds
-        )
-
-
-        # Obtém as previsões do MLP
-        mlp_modelo = resultados["MLP"]["modelo"]
-        X = df.drop(columns=["Fechamento", "Data"], errors="ignore")
-        y_real = df["Fechamento"].values
-        mlp_preds = mlp_modelo.predict(X)
-
-        # Comparação completa dos modelos
-        resultados_completos = comparar_modelos_regressao(df, y_real, mlp_preds)
-
-        plotar_dispersao_e_lucros(resultados_completos)
-        print("[OK] Comparação entre modelos finalizada. Gráficos e métricas salvos em /figures.")
     
     
 if __name__ == "__main__":
