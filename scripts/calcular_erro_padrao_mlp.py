@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 # Carregar dados
-df = pd.read_csv("previsto_real_por_modelo_por_cripto.csv")
+df = pd.read_csv("results/previsto_real_por_modelo_por_cripto.csv")
 
 # Pasta de saída
 os.makedirs("results", exist_ok=True)

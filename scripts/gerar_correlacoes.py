@@ -12,7 +12,7 @@ configurar_logging("logs/gerar_correlacoes.log")
 logging.info("Iniciando cálculo dos coeficientes de correlação...")
 
 # Verificar existência do CSV
-arquivo_csv = "previsto_real_por_modelo_por_cripto.csv"
+arquivo_csv = "results/previsto_real_por_modelo_por_cripto.csv"
 if not os.path.exists(arquivo_csv):
     logging.error(f"Arquivo não encontrado: {arquivo_csv}")
     exit(1)

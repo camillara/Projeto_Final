@@ -6,7 +6,7 @@ from sklearn.metrics import mean_squared_error
 from src.logging_config import configurar_logging
 
 
-def calcular_erro_padrao(previsto_real_path: str = "previsto_real_por_modelo_por_cripto.csv",
+def calcular_erro_padrao(previsto_real_path: str = "results/previsto_real_por_modelo_por_cripto.csv",
                          output_path: str = "results/erro_padrao_modelos.csv") -> None:
     """
     Calcula o erro padrão (Root Mean Squared Error - RMSE) para cada combinação de criptomoeda e modelo.

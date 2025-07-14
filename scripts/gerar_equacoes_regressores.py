@@ -8,7 +8,7 @@ from src.logging_config import configurar_logging
 from src.utils import preprocessar_dados
 
 
-def gerar_equacoes(grau_min: int = 1, grau_max: int = 5) -> None:
+def gerar_equacoes(grau_min: int = 1, grau_max: int = 10) -> None:
     """
     Gera equações matemáticas dos modelos de regressão treinados para diferentes graus polinomiais.
 
@@ -119,10 +119,27 @@ def gerar_equacoes(grau_min: int = 1, grau_max: int = 5) -> None:
             except Exception as e:
                 logging.error(f"Erro ao gerar equação para {cripto} - Grau {grau}: {e}")
             finally:
-                del modelo
+                del modelo, coef, intercept, nomes_features
+                if grau != 1:
+                    del poly
                 gc.collect()
 
     df_equacoes = pd.DataFrame(equacoes)
-    saida = os.path.join(DIRETORIO_SAIDA, f"equacoes_regressores_grau_{grau_min}_a_{grau_max}.csv")
-    df_equacoes.to_csv(saida, index=False)
-    logging.info(f"[OK] Equações salvas em {saida}")
+    saida = os.path.join(DIRETORIO_SAIDA, f"equacoes_regressores.csv")
+
+    # Se o arquivo já existir, carregar conteúdo anterior
+    if os.path.exists(saida):
+        try:
+            df_existente = pd.read_csv(saida)
+            df_equacoes = pd.DataFrame(equacoes)
+            df_total = pd.concat([df_existente, df_equacoes], ignore_index=True)
+            df_total.drop_duplicates(subset=["Criptomoeda", "Modelo"], inplace=True)
+        except Exception as e:
+            logging.warning(f"Não foi possível ler o CSV existente. Criando novo arquivo. Erro: {e}")
+            df_total = pd.DataFrame(equacoes)
+    else:
+        df_total = pd.DataFrame(equacoes)
+
+    df_total.to_csv(saida, index=False)
+    logging.info(f"[OK] Equações salvas/atualizadas em {saida}")
+
