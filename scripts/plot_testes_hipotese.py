@@ -103,7 +103,7 @@ def plotar_graficos_teste_hipotese(
         heatmap_data = df.pivot(index="Modelo", columns="Criptomoeda", values="Rejeita")
 
         plt.figure(figsize=(10, 6))
-        ax = sns.heatmap(heatmap_data, annot=True, cmap="Reds", cbar=False, fmt="d")
+        
         plt.title("Heatmap: Rejeição da Hipótese Nula (H₀)")
 
         # Rotacionar nomes das criptos

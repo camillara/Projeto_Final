@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import os
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Carregar dados
 df = pd.read_csv("results/previsto_real_por_modelo_por_cripto.csv")
@@ -57,9 +59,6 @@ for cripto in df["Criptomoeda"].unique():
 df_erro_padrao = pd.DataFrame(dados_erro_padrao)
 df_erro_padrao.to_csv("results/erro_padrao_mlp_vs_melhor.csv", index=False)
 print("[OK] Erro padrão salvo em results/erro_padrao_mlp_vs_melhor.csv")
-
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 # Pasta de figuras
 pasta_figuras = "figures/erro_padrao"

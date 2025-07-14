@@ -143,7 +143,7 @@ def gerar_equacoes(grau_min: int = 1, grau_max: int = 10) -> None:
                 gc.collect()
 
     df_equacoes = pd.DataFrame(equacoes)
-    saida = os.path.join(DIRETORIO_SAIDA, f"equacoes_regressores.csv")
+    saida = os.path.join(DIRETORIO_SAIDA, "equacoes_regressores.csv")
 
     # Se o arquivo já existir, carregar conteúdo anterior
     if os.path.exists(saida):

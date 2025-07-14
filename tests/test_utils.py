@@ -1,7 +1,6 @@
 import os
 import pandas as pd
 import numpy as np
-import joblib
 import pytest
 from sklearn.linear_model import LinearRegression
 from pandas import DataFrame
@@ -12,7 +11,6 @@ from src.utils import (
     salvar_modelo,
     carregar_modelo,
     preprocessar_dados,
-    salvar_medidas_dispersao,
 )
 
 

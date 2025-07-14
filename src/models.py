@@ -1,6 +1,5 @@
 from typing import Optional, List, Dict, Any
 import pandas as pd
-import numpy as np
 import logging
 from sklearn.linear_model import LinearRegression
 from sklearn.neural_network import MLPRegressor

@@ -1,5 +1,4 @@
 import os
-import shutil
 import pandas as pd
 from scripts.anova_por_grupo_caracteristica import executar_anova_por_grupo
 

@@ -13,7 +13,7 @@ from src.visualization import (
     plot_analise_exploratoria_conjunta,
 )
 from src.models import treinar_modelos
-from src.evaluation import simular_estrategia_investimento, comparar_modelos_regressao
+from src.evaluation import simular_estrategia_investimento
 from src.utils import plot_grafico_retorno
 from src.hypothesis import executar_teste_hipotese_retorno_diario_real
 from scripts.gerar_equacoes_regressores import gerar_equacoes

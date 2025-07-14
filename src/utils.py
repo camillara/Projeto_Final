@@ -5,15 +5,10 @@ import logging
 from typing import Any
 import pandas as pd
 from src.features import adicionar_features_basicas
-import logging
 import csv
 
+
 # === GERAÇÃO DE GRÁFICO DE RETORNO ===
-import os
-import matplotlib.pyplot as plt
-import pandas as pd
-
-
 def plot_grafico_retorno(df_resultados: pd.DataFrame, modelo: str = "MLP") -> None:
     """
     Gera e salva um gráfico de barras com o retorno percentual por criptomoeda para o modelo especificado.
@@ -95,7 +90,7 @@ def preprocessar_dados(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.copy()
 
-    logging.info(f"[PREPROCESSAMENTO] Iniciando o pré-processamento...")
+    logging.info("[PREPROCESSAMENTO] Iniciando o pré-processamento...")
 
     if "Data" in df.columns:
         df["Data"] = pd.to_datetime(df["Data"], errors="coerce")

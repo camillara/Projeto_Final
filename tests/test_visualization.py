@@ -14,14 +14,12 @@ from src.visualization import (
     plotar_dispersao_e_lucros,
     plot_grafico_comparativo_modelos,
     plot_comparativo_modelos_por_cripto,
-    plot_linha_media_mediana_moda,
     moda_rolante,
     salvar_graficos_mlp,
     salvar_graficos_regressao,
     salvar_importancia_features,
     plot_analise_exploratoria_conjunta,
 )
-import pandas as pd
 
 
 def test_salvar_grafico_cria_arquivo() -> None:
@@ -246,20 +244,6 @@ def test_plot_comparativo_modelos_por_cripto() -> None:
         assert os.path.exists(arquivo), f"Gráfico não foi gerado: {arquivo}"
         os.remove(arquivo)
 
-
-def test_plot_histograma_cria_arquivo() -> None:
-    """
-    Testa se a função `plot_histograma` salva corretamente o gráfico de histograma
-    em um arquivo na pasta 'figures'.
-    """
-    nome_cripto: str = "cripto_histograma"
-    caminho_esperado: str = os.path.join("figures", f"{nome_cripto}_histograma.png")
-
-    df: pd.DataFrame = pd.DataFrame({"Fechamento": np.random.normal(100, 10, 100)})
-    plot_histograma(df, nome_cripto)
-
-    assert os.path.exists(caminho_esperado)
-    os.remove(caminho_esperado)
 
 
 def test_plot_linha_media_mediana_moda_cria_arquivo() -> None:

@@ -1,7 +1,5 @@
-import os
 import pandas as pd
 import numpy as np
-import tempfile
 from scripts.erro_padrao import calcular_erro_padrao
 
 
