@@ -4,7 +4,7 @@ from typing import Union
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
+from sklearn.neural_network import MLPRegressor
 from src.visualization import (
     salvar_grafico,
     plot_boxplot,
@@ -15,7 +15,11 @@ from src.visualization import (
     plot_grafico_comparativo_modelos,
     plot_comparativo_modelos_por_cripto,
     plot_linha_media_mediana_moda,
-    moda_rolante
+    moda_rolante,
+    salvar_graficos_mlp,
+    salvar_graficos_regressao,
+    salvar_importancia_features,
+    plot_analise_exploratoria_conjunta
 )
 import pandas as pd
 
@@ -301,3 +305,70 @@ def test_plotar_dispersao_e_lucros_cria_graficos() -> None:
     for nome in arquivos:
         os.remove(os.path.join(caminho_saida, nome))
     os.rmdir(caminho_saida)
+    
+
+def criar_mock_dataframe() -> pd.DataFrame:
+    """
+    Cria um DataFrame de exemplo com colunas 'Data' e 'Fechamento'.
+
+    Returns:
+        pd.DataFrame: DataFrame com dados simulados.
+    """
+    return pd.DataFrame({
+        "Data": pd.date_range(start="2023-01-01", periods=10, freq="D"),
+        "Fechamento": np.linspace(100, 110, 10)
+    })
+
+
+def test_salvar_graficos_mlp() -> None:
+    """
+    Testa se os gráficos de dispersão e curva de perda do MLP são salvos corretamente.
+    """
+    y_real = np.array([1, 2, 3, 4, 5])
+    y_pred = np.array([1.1, 1.9, 3.2, 3.8, 5.1])
+    loss_curve = [0.5, 0.3, 0.2, 0.15]
+    nome = "cripto_teste"
+
+    salvar_graficos_mlp(y_real, y_pred, loss_curve, nome)
+
+    pasta = os.path.join("figures", "MLP", nome)
+    assert os.path.exists(os.path.join(pasta, "dispersao_real_vs_previsto.png"))
+    assert os.path.exists(os.path.join(pasta, "curva_loss_mlp.png"))
+
+
+def test_salvar_importancia_features() -> None:
+    """
+    Testa se o gráfico de importância das features é salvo corretamente.
+    """
+    X = np.random.rand(100, 4)
+    y = X @ np.array([0.4, 0.3, 0.2, 0.1]) + np.random.normal(0, 0.01, 100)
+    model = MLPRegressor(hidden_layer_sizes=(10,), max_iter=1000, random_state=42)
+    model.fit(X, y)
+    nome = "cripto_importancia"
+    salvar_importancia_features(model, X, y, ["f1", "f2", "f3", "f4"], nome)
+    caminho = os.path.join("figures", "MLP", nome, f"importancia_features_{nome}.png")
+    assert os.path.exists(caminho)
+
+
+def test_salvar_graficos_regressao() -> None:
+    """
+    Testa se o gráfico de dispersão para modelos de regressão não-MLP é salvo corretamente.
+    """
+    nome_modelo = "Linear"
+    nome_cripto = "cripto_linear"
+    y_real = np.array([10, 20, 30, 40, 50])
+    y_pred = np.array([12, 18, 31, 39, 49])
+    salvar_graficos_regressao(nome_modelo, y_real, y_pred, nome_cripto)
+    caminho = f"figures/{nome_modelo}/{nome_cripto}/dispersao_real_vs_previsto_{nome_modelo}_{nome_cripto}.png"
+    assert os.path.exists(caminho)
+
+
+def test_plot_analise_exploratoria_conjunta() -> None:
+    """
+    Testa se o gráfico da análise exploratória conjunta é salvo corretamente.
+    """
+    nome = "cripto_exploratoria"
+    df = criar_mock_dataframe()
+    plot_analise_exploratoria_conjunta(df, nome)
+    caminho = os.path.join("figures", f"{nome}_analise_exploratoria.png")
+    assert os.path.exists(caminho)
