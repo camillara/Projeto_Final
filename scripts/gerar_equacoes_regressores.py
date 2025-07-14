@@ -49,7 +49,9 @@ def gerar_equacoes(grau_min: int = 1, grau_max: int = 10) -> None:
 
     os.makedirs("logs", exist_ok=True)
     configurar_logging("logs/gerar_equacoes_regressores.log")
-    logging.info(f"Iniciando geração das equações dos regressores (grau {grau_min} a {grau_max})...")
+    logging.info(
+        f"Iniciando geração das equações dos regressores (grau {grau_min} a {grau_max})..."
+    )
 
     DIRETORIO_MODELOS = "modelos"
     DIRETORIO_DADOS = "data"
@@ -58,10 +60,18 @@ def gerar_equacoes(grau_min: int = 1, grau_max: int = 10) -> None:
 
     # Lista padrão de criptomoedas
     criptos_padrao = [
-        "DASHUSDT", "XRPUSDT", "XMRUSDT", "ETHUSDT", "LTCUSDT",
-        "ZRXUSDT", "BTCUSDT", "BATUSDT", "BCHUSDT", "ETCUSDT"
+        "DASHUSDT",
+        "XRPUSDT",
+        "XMRUSDT",
+        "ETHUSDT",
+        "LTCUSDT",
+        "ZRXUSDT",
+        "BTCUSDT",
+        "BATUSDT",
+        "BCHUSDT",
+        "ETCUSDT",
     ]
-    
+
     criptos = criptos_padrao
 
     equacoes = []
@@ -75,7 +85,7 @@ def gerar_equacoes(grau_min: int = 1, grau_max: int = 10) -> None:
             continue
 
         try:
-            df = pd.read_csv(caminho_csv, skiprows=1)            
+            df = pd.read_csv(caminho_csv, skiprows=1)
             df = preprocessar_dados(df)
             X = df.drop(columns=["Fechamento", "Data"], errors="ignore")
             feature_names = X.columns.tolist()
@@ -84,7 +94,11 @@ def gerar_equacoes(grau_min: int = 1, grau_max: int = 10) -> None:
             continue
 
         for grau in range(grau_min, grau_max + 1):
-            nome_modelo = f"{cripto}_linear.joblib" if grau == 1 else f"{cripto}_polinomial_grau{grau}.joblib"
+            nome_modelo = (
+                f"{cripto}_linear.joblib"
+                if grau == 1
+                else f"{cripto}_polinomial_grau{grau}.joblib"
+            )
             modelo_path = os.path.join(DIRETORIO_MODELOS, nome_modelo)
 
             if not os.path.exists(modelo_path):
@@ -102,18 +116,22 @@ def gerar_equacoes(grau_min: int = 1, grau_max: int = 10) -> None:
                     poly = PolynomialFeatures(degree=grau)
                     poly.fit(X)
                     nomes_features = poly.get_feature_names_out(feature_names)
-                    coef = modelo.named_steps['linearregression'].coef_
-                    intercept = modelo.named_steps['linearregression'].intercept_
+                    coef = modelo.named_steps["linearregression"].coef_
+                    intercept = modelo.named_steps["linearregression"].intercept_
 
-                termos = [f"{coef[i]:.4f}*{nomes_features[i]}" for i in range(len(coef))]
+                termos = [
+                    f"{coef[i]:.4f}*{nomes_features[i]}" for i in range(len(coef))
+                ]
                 equacao = " + ".join(termos)
                 equacao = f"y = {intercept:.4f} + " + equacao
 
-                equacoes.append({
-                    "Criptomoeda": cripto,
-                    "Modelo": "Linear" if grau == 1 else f"Polinomial_{grau}",
-                    "Equacao": equacao
-                })
+                equacoes.append(
+                    {
+                        "Criptomoeda": cripto,
+                        "Modelo": "Linear" if grau == 1 else f"Polinomial_{grau}",
+                        "Equacao": equacao,
+                    }
+                )
 
                 logging.info(f"✔️ Equação gerada: {cripto} - Grau {grau}")
             except Exception as e:
@@ -135,11 +153,12 @@ def gerar_equacoes(grau_min: int = 1, grau_max: int = 10) -> None:
             df_total = pd.concat([df_existente, df_equacoes], ignore_index=True)
             df_total.drop_duplicates(subset=["Criptomoeda", "Modelo"], inplace=True)
         except Exception as e:
-            logging.warning(f"Não foi possível ler o CSV existente. Criando novo arquivo. Erro: {e}")
+            logging.warning(
+                f"Não foi possível ler o CSV existente. Criando novo arquivo. Erro: {e}"
+            )
             df_total = pd.DataFrame(equacoes)
     else:
         df_total = pd.DataFrame(equacoes)
 
     df_total.to_csv(saida, index=False)
     logging.info(f"[OK] Equações salvas/atualizadas em {saida}")
-

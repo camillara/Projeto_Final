@@ -1,5 +1,6 @@
 import logging
 
+
 def configurar_logging(log_file: str = "logs/execucao.log") -> None:
     """
     Configura o sistema de logging para registrar mensagens de log tanto em arquivo quanto no console.
@@ -20,7 +21,7 @@ def configurar_logging(log_file: str = "logs/execucao.log") -> None:
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
-            logging.FileHandler(log_file, mode='w', encoding='utf-8'),
-            logging.StreamHandler()
-        ]
+            logging.FileHandler(log_file, mode="w", encoding="utf-8"),
+            logging.StreamHandler(),
+        ],
     )

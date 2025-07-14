@@ -19,7 +19,7 @@ from src.visualization import (
     salvar_graficos_mlp,
     salvar_graficos_regressao,
     salvar_importancia_features,
-    plot_analise_exploratoria_conjunta
+    plot_analise_exploratoria_conjunta,
 )
 import pandas as pd
 
@@ -27,7 +27,7 @@ import pandas as pd
 def test_salvar_grafico_cria_arquivo() -> None:
     """
     Testa a função salvar_grafico() garantindo que um gráfico matplotlib é salvo corretamente no disco.
-    
+
     Cria um gráfico simples, invoca a função e verifica se o arquivo foi criado. Depois remove o arquivo.
     """
     nome_arquivo = "grafico_teste"
@@ -41,27 +41,25 @@ def test_salvar_grafico_cria_arquivo() -> None:
     assert os.path.exists(caminho_completo)
 
     os.remove(caminho_completo)
-    
+
 
 def test_plot_boxplot_cria_arquivo() -> None:
     """
     Testa a função plot_boxplot() verificando se o arquivo do gráfico é criado corretamente.
-    
+
     Usa um DataFrame fictício com dados de fechamento, chama a função e verifica se o arquivo foi salvo.
     """
     nome_cripto = "cripto_teste"
     caminho_esperado = os.path.join("figures", f"{nome_cripto}_boxplot.png")
 
-    df = pd.DataFrame({
-        "Fechamento": [100, 110, 115, 105, 120, 95, 130]
-    })
+    df = pd.DataFrame({"Fechamento": [100, 110, 115, 105, 120, 95, 130]})
 
     plot_boxplot(df, nome_cripto)
 
     assert os.path.exists(caminho_esperado)
 
     os.remove(caminho_esperado)
-    
+
 
 def test_plot_histograma_cria_arquivo() -> None:
     """
@@ -72,17 +70,19 @@ def test_plot_histograma_cria_arquivo() -> None:
     nome_cripto = "cripto_teste_hist"
     caminho_esperado = os.path.join("figures", f"{nome_cripto}_histograma.png")
 
-    df = pd.DataFrame({
-        "Data": pd.date_range(start="2023-01-01", periods=7, freq="D"),
-        "Fechamento": [100, 102, 101, 103, 99, 98, 97]
-    })
+    df = pd.DataFrame(
+        {
+            "Data": pd.date_range(start="2023-01-01", periods=7, freq="D"),
+            "Fechamento": [100, 102, 101, 103, 99, 98, 97],
+        }
+    )
 
     plot_histograma(df, nome_cripto)
 
     assert os.path.exists(caminho_esperado)
 
     os.remove(caminho_esperado)
-    
+
 
 def test_moda_rolante() -> None:
     """
@@ -95,12 +95,16 @@ def test_moda_rolante() -> None:
     assert moda_rolante(serie_1) == 3, "A moda esperada é 3"
 
     serie_2 = pd.Series([10, 20, 30])
-    assert moda_rolante(serie_2) in [10, 20, 30], "Para todos únicos, qualquer valor é aceitável"
+    assert moda_rolante(serie_2) in [
+        10,
+        20,
+        30,
+    ], "Para todos únicos, qualquer valor é aceitável"
 
     serie_3 = pd.Series([], dtype=float)
     resultado = moda_rolante(serie_3)
     assert np.isnan(resultado), "Para série vazia, o retorno deve ser NaN"
-    
+
 
 def test_calcular_dispersao(caplog) -> None:
     """
@@ -109,9 +113,7 @@ def test_calcular_dispersao(caplog) -> None:
     Verifica se as medidas de dispersão (desvio padrão, variância, amplitude, IQR)
     são corretamente calculadas e registradas no log.
     """
-    df = pd.DataFrame({
-        "Fechamento": [10, 12, 14, 16, 18, 20, 22]
-    })
+    df = pd.DataFrame({"Fechamento": [10, 12, 14, 16, 18, 20, 22]})
 
     nome_cripto = "TESTE"
 
@@ -123,7 +125,7 @@ def test_calcular_dispersao(caplog) -> None:
     assert "Variância" in caplog.text
     assert "Amplitude" in caplog.text
     assert "IQR (Q3 - Q1)" in caplog.text
-    
+
 
 def test_plotar_dispersao_e_lucros_gera_arquivos() -> None:
     """
@@ -144,20 +146,24 @@ def test_plotar_dispersao_e_lucros_gera_arquivos() -> None:
     resultados_falsos = {
         "MLP": {
             "previsoes": np.linspace(10, 20, 10).tolist(),
-            "simulacao": pd.DataFrame({
-                "Data": datas,
-                "CapitalFinal": np.linspace(1000, 2000, 10),
-                "PrecoHoje": np.linspace(10, 20, 10)
-            })
+            "simulacao": pd.DataFrame(
+                {
+                    "Data": datas,
+                    "CapitalFinal": np.linspace(1000, 2000, 10),
+                    "PrecoHoje": np.linspace(10, 20, 10),
+                }
+            ),
         },
         "Linear": {
             "previsoes": np.linspace(12, 22, 10).tolist(),
-            "simulacao": pd.DataFrame({
-                "Data": datas,
-                "CapitalFinal": np.linspace(1100, 1900, 10),
-                "PrecoHoje": np.linspace(10, 20, 10)
-            })
-        }
+            "simulacao": pd.DataFrame(
+                {
+                    "Data": datas,
+                    "CapitalFinal": np.linspace(1100, 1900, 10),
+                    "PrecoHoje": np.linspace(10, 20, 10),
+                }
+            ),
+        },
     }
 
     plotar_dispersao_e_lucros(resultados_falsos, pasta=pasta)
@@ -166,7 +172,7 @@ def test_plotar_dispersao_e_lucros_gera_arquivos() -> None:
         f"{pasta}/dispersao_modelos.png",
         f"{pasta}/coeficientes_correlacao.csv",
         f"{pasta}/equacoes_regressao.csv",
-        f"{pasta}/erros_padrao.csv"
+        f"{pasta}/erros_padrao.csv",
     ]
 
     for caminho in arquivos_esperados:
@@ -175,19 +181,20 @@ def test_plotar_dispersao_e_lucros_gera_arquivos() -> None:
     for caminho in arquivos_esperados:
         os.remove(caminho)
 
-        
 
 def test_plot_grafico_comparativo_modelos() -> None:
     """
     Testa a função plot_grafico_comparativo_modelos verificando se o gráfico é gerado
     corretamente com um DataFrame de exemplo e salvo no local esperado.
     """
-    df_resultados = pd.DataFrame({
-        "Criptomoeda": ["BTC", "ETH", "XRP"],
-        "RetornoPercentual_MLP": [12.5, 8.3, None],
-        "RetornoPercentual_Linear": [10.1, None, 5.0],
-        "RetornoPercentual_Polinomial_2": [11.2, 9.8, 6.1]
-    })
+    df_resultados = pd.DataFrame(
+        {
+            "Criptomoeda": ["BTC", "ETH", "XRP"],
+            "RetornoPercentual_MLP": [12.5, 8.3, None],
+            "RetornoPercentual_Linear": [10.1, None, 5.0],
+            "RetornoPercentual_Polinomial_2": [11.2, 9.8, 6.1],
+        }
+    )
 
     caminho_grafico = "figures/retorno_modelos_comparativo.png"
 
@@ -199,32 +206,35 @@ def test_plot_grafico_comparativo_modelos() -> None:
     assert os.path.exists(caminho_grafico), f"Gráfico não foi criado: {caminho_grafico}"
 
     os.remove(caminho_grafico)
-    
-    
+
+
 def test_plot_comparativo_modelos_por_cripto() -> None:
     """
     Testa a função plot_grafico_comparativo_modelos que gera um gráfico de barras
     para cada criptomoeda comparando os retornos de todos os modelos.
     """
 
-    df = pd.DataFrame({
-        "Criptomoeda": ["BTC", "ETH"],
-        "RetornoPercentual_MLP": [10.5, 9.3],
-        "RetornoPercentual_Linear": [8.2, 7.9],
-        "RetornoPercentual_Polinomial_2": [9.8, 8.5],
-        "RetornoPercentual_Polinomial_3": [9.9, 8.8],
-        "RetornoPercentual_Polinomial_4": [10.0, 8.9],
-        "RetornoPercentual_Polinomial_5": [10.1, 9.0],
-        "RetornoPercentual_Polinomial_6": [10.2, 9.1],
-        "RetornoPercentual_Polinomial_7": [10.3, 9.2],
-        "RetornoPercentual_Polinomial_8": [10.4, 9.3],
-        "RetornoPercentual_Polinomial_9": [10.5, 9.4],
-        "RetornoPercentual_Polinomial_10": [10.6, 9.5]
-    })
+    df = pd.DataFrame(
+        {
+            "Criptomoeda": ["BTC", "ETH"],
+            "RetornoPercentual_MLP": [10.5, 9.3],
+            "RetornoPercentual_Linear": [8.2, 7.9],
+            "RetornoPercentual_Polinomial_2": [9.8, 8.5],
+            "RetornoPercentual_Polinomial_3": [9.9, 8.8],
+            "RetornoPercentual_Polinomial_4": [10.0, 8.9],
+            "RetornoPercentual_Polinomial_5": [10.1, 9.0],
+            "RetornoPercentual_Polinomial_6": [10.2, 9.1],
+            "RetornoPercentual_Polinomial_7": [10.3, 9.2],
+            "RetornoPercentual_Polinomial_8": [10.4, 9.3],
+            "RetornoPercentual_Polinomial_9": [10.5, 9.4],
+            "RetornoPercentual_Polinomial_10": [10.6, 9.5],
+        }
+    )
 
     pasta = "figures/modelos_por_cripto"
-    arquivos_esperados = [os.path.join(pasta, f"{cripto}_modelos.png") for cripto in df["Criptomoeda"]]
-
+    arquivos_esperados = [
+        os.path.join(pasta, f"{cripto}_modelos.png") for cripto in df["Criptomoeda"]
+    ]
 
     for arquivo in arquivos_esperados:
         if os.path.exists(arquivo):
@@ -235,7 +245,7 @@ def test_plot_comparativo_modelos_por_cripto() -> None:
     for arquivo in arquivos_esperados:
         assert os.path.exists(arquivo), f"Gráfico não foi gerado: {arquivo}"
         os.remove(arquivo)
-        
+
 
 def test_plot_histograma_cria_arquivo() -> None:
     """
@@ -250,7 +260,7 @@ def test_plot_histograma_cria_arquivo() -> None:
 
     assert os.path.exists(caminho_esperado)
     os.remove(caminho_esperado)
-    
+
 
 def test_plot_linha_media_mediana_moda_cria_arquivo() -> None:
     """
@@ -259,17 +269,18 @@ def test_plot_linha_media_mediana_moda_cria_arquivo() -> None:
     nome_cripto = "cripto_linha"
     caminho_esperado = os.path.join("figures", f"{nome_cripto}_linha_tempo.png")
 
-    df = pd.DataFrame({
-        "Data": pd.date_range(start="2023-01-01", periods=7, freq="D"),
-        "Fechamento": [100, 102, 101, 103, 99, 98, 97]
-    })
+    df = pd.DataFrame(
+        {
+            "Data": pd.date_range(start="2023-01-01", periods=7, freq="D"),
+            "Fechamento": [100, 102, 101, 103, 99, 98, 97],
+        }
+    )
 
     plot_linha_media_mediana_moda(df, nome_cripto)
 
     assert os.path.exists(caminho_esperado)
 
     os.remove(caminho_esperado)
-
 
 
 def test_plotar_dispersao_e_lucros_cria_graficos() -> None:
@@ -286,10 +297,12 @@ def test_plotar_dispersao_e_lucros_cria_graficos() -> None:
         "ModeloTeste": {
             "previsoes": np.array([100, 105, 110, 108]),
             "reais": np.array([102, 104, 109, 107]),
-            "simulacao": pd.DataFrame({
-                "PrecoHoje": [102, 104, 109, 107],
-                "PrecoPrevisto": [100, 105, 110, 108]
-            })
+            "simulacao": pd.DataFrame(
+                {
+                    "PrecoHoje": [102, 104, 109, 107],
+                    "PrecoPrevisto": [100, 105, 110, 108],
+                }
+            ),
         }
     }
 
@@ -305,7 +318,7 @@ def test_plotar_dispersao_e_lucros_cria_graficos() -> None:
     for nome in arquivos:
         os.remove(os.path.join(caminho_saida, nome))
     os.rmdir(caminho_saida)
-    
+
 
 def criar_mock_dataframe() -> pd.DataFrame:
     """
@@ -314,10 +327,12 @@ def criar_mock_dataframe() -> pd.DataFrame:
     Returns:
         pd.DataFrame: DataFrame com dados simulados.
     """
-    return pd.DataFrame({
-        "Data": pd.date_range(start="2023-01-01", periods=10, freq="D"),
-        "Fechamento": np.linspace(100, 110, 10)
-    })
+    return pd.DataFrame(
+        {
+            "Data": pd.date_range(start="2023-01-01", periods=10, freq="D"),
+            "Fechamento": np.linspace(100, 110, 10),
+        }
+    )
 
 
 def test_salvar_graficos_mlp() -> None:

@@ -6,6 +6,7 @@ from src.logging_config import configurar_logging
 
 configurar_logging()
 
+
 def adicionar_features_basicas(df: pd.DataFrame) -> pd.DataFrame:
     """
     Adiciona colunas derivadas e estatísticas para melhorar a capacidade preditiva do modelo.
@@ -19,13 +20,16 @@ def adicionar_features_basicas(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
     # Garantir os nomes padronizados
-    df.rename(columns={
-        "open": "Abertura",
-        "high": "Alta",
-        "low": "Baixa",
-        "close": "Fechamento",
-        "volume": "Volume"
-    }, inplace=True)
+    df.rename(
+        columns={
+            "open": "Abertura",
+            "high": "Alta",
+            "low": "Baixa",
+            "close": "Fechamento",
+            "volume": "Volume",
+        },
+        inplace=True,
+    )
 
     # Converter para numérico caso ainda não esteja
     for col in ["Abertura", "Alta", "Baixa", "Fechamento", "Volume"]:
@@ -43,7 +47,9 @@ def adicionar_features_basicas(df: pd.DataFrame) -> pd.DataFrame:
     df["Variacao_Alta_Abertura"] = df["Alta"] - df["Abertura"]
     df["Variacao_Abertura_Baixa"] = df["Abertura"] - df["Baixa"]
     df["Razao_Alta_Baixa"] = df["Alta"] / df["Baixa"].replace(0, np.nan)
-    df["Razao_Retorno_Desvio"] = df["Retorno"] / df["Retorno"].rolling(window=7).std().replace(0, np.nan)
+    df["Razao_Retorno_Desvio"] = df["Retorno"] / df["Retorno"].rolling(
+        window=7
+    ).std().replace(0, np.nan)
 
     # Médias móveis e desvios padrão
     df["MediaMovel_7d"] = df["Fechamento"].rolling(window=7).mean()
@@ -75,5 +81,4 @@ def adicionar_features_basicas(df: pd.DataFrame) -> pd.DataFrame:
     logging.info(f"[FEATURES] Features adicionadas com sucesso: {features_adicionadas}")
     logging.info(f"[FEATURES] Total de registros após limpeza: {df.shape[0]}")
 
-    
     return df

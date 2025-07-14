@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from src.evaluation import comparar_modelos_regressao
 
+
 def test_comparar_modelos_regressao() -> None:
     """
     Testa a função `comparar_modelos_regressao` com dados simulados.
@@ -12,10 +13,12 @@ def test_comparar_modelos_regressao() -> None:
     - Se as métricas (mse, mae, correlacao) são valores float.
     """
     # Simulação de dados de entrada
-    df = pd.DataFrame({
-        "Data": pd.date_range(start="2023-01-01", periods=20),
-        "Fechamento": np.linspace(100, 120, 20)
-    })
+    df = pd.DataFrame(
+        {
+            "Data": pd.date_range(start="2023-01-01", periods=20),
+            "Fechamento": np.linspace(100, 120, 20),
+        }
+    )
 
     y_real = df["Fechamento"].values
     mlp_preds = y_real + np.random.normal(0, 0.5, size=len(y_real))
@@ -37,5 +40,9 @@ def test_comparar_modelos_regressao() -> None:
 
         assert isinstance(resultado["mse"], float), f"'mse' deve ser float em {modelo}"
         assert isinstance(resultado["mae"], float), f"'mae' deve ser float em {modelo}"
-        assert isinstance(resultado["correlacao"], float), f"'correlacao' deve ser float em {modelo}"
-        assert isinstance(resultado["simulacao"], pd.DataFrame), f"'simulacao' deve ser DataFrame em {modelo}"
+        assert isinstance(
+            resultado["correlacao"], float
+        ), f"'correlacao' deve ser float em {modelo}"
+        assert isinstance(
+            resultado["simulacao"], pd.DataFrame
+        ), f"'simulacao' deve ser DataFrame em {modelo}"

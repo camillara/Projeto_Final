@@ -1,6 +1,7 @@
 import pandas as pd
 from src.data_load import carregar_multiplas_criptomoedas, carregar_criptomoeda
 
+
 def test_carregar_multiplas_criptomoedas() -> None:
     """
     Testa a função `carregar_multiplas_criptomoedas` verificando se:
@@ -17,12 +18,13 @@ def test_carregar_multiplas_criptomoedas() -> None:
         assert isinstance(df, pd.DataFrame), f"O valor para {nome} não é um DataFrame"
         assert not df.empty, f"O DataFrame para {nome} está vazio"
         assert "Fechamento" in df.columns, f"'Fechamento' não encontrada em {nome}"
-        
+
 
 def test_carregar_criptomoeda_com_erro(monkeypatch) -> None:
     """
     Testa o caminho de erro da função `carregar_criptomoeda`.
     """
+
     def mock_read_csv(*args, **kwargs):
         raise ValueError("Erro simulado")
 
@@ -30,4 +32,3 @@ def test_carregar_criptomoeda_com_erro(monkeypatch) -> None:
 
     df = carregar_criptomoeda("caminho_invalido.csv", "FakeCoin")
     assert df is None
-

@@ -12,7 +12,7 @@ from src.utils import (
     salvar_modelo,
     carregar_modelo,
     preprocessar_dados,
-    salvar_medidas_dispersao
+    salvar_medidas_dispersao,
 )
 
 
@@ -21,11 +21,13 @@ def df_resultados_exemplo() -> Generator[DataFrame, None, None]:
     """
     Fixture que retorna um DataFrame de exemplo com retornos simulados.
     """
-    df = pd.DataFrame({
-        "Criptomoeda": ["BTC", "ETH"],
-        "RetornoPercentual_MLP": [12.5, -3.2],
-        "RetornoPercentual_Linear": [10.1, 2.0]
-    })
+    df = pd.DataFrame(
+        {
+            "Criptomoeda": ["BTC", "ETH"],
+            "RetornoPercentual_MLP": [12.5, -3.2],
+            "RetornoPercentual_Linear": [10.1, 2.0],
+        }
+    )
     yield df
 
 
@@ -61,14 +63,16 @@ def test_preprocessar_dados() -> None:
     Testa o pré-processamento de dados em um DataFrame simulado.
     """
     datas = pd.date_range("2023-01-01", periods=40)
-    df = pd.DataFrame({
-        "Data": datas,
-        "open": np.random.rand(40) * 100,
-        "high": np.random.rand(40) * 100,
-        "low": np.random.rand(40) * 100,
-        "close": np.random.rand(40) * 100,
-        "Volume": np.random.randint(1000, 5000, size=40)
-    })
+    df = pd.DataFrame(
+        {
+            "Data": datas,
+            "open": np.random.rand(40) * 100,
+            "high": np.random.rand(40) * 100,
+            "low": np.random.rand(40) * 100,
+            "close": np.random.rand(40) * 100,
+            "Volume": np.random.randint(1000, 5000, size=40),
+        }
+    )
 
     df_processado = preprocessar_dados(df)
     assert isinstance(df_processado, pd.DataFrame)

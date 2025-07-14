@@ -5,7 +5,11 @@ import seaborn as sns
 import logging
 from src.logging_config import configurar_logging
 
-def gerar_graficos_erro_padrao(csv_path: str = "results/erro_padrao_modelos.csv", pasta_saida: str = "figures/erro_padrao") -> None:
+
+def gerar_graficos_erro_padrao(
+    csv_path: str = "results/erro_padrao_modelos.csv",
+    pasta_saida: str = "figures/erro_padrao",
+) -> None:
     """
     Gera gráficos de barras com o erro padrão (RMSE) por modelo para cada criptomoeda.
 
@@ -41,7 +45,9 @@ def gerar_graficos_erro_padrao(csv_path: str = "results/erro_padrao_modelos.csv"
     # Inicializa o logging e cria diretórios necessários
     os.makedirs("logs", exist_ok=True)
     configurar_logging("logs/gerar_graficos_erro_padrao.log")
-    logging.info("Iniciando geração dos gráficos de erro padrão (RMSE) por criptomoeda.")
+    logging.info(
+        "Iniciando geração dos gráficos de erro padrão (RMSE) por criptomoeda."
+    )
 
     # Cria pasta de saída se necessário
     os.makedirs(pasta_saida, exist_ok=True)
@@ -57,7 +63,9 @@ def gerar_graficos_erro_padrao(csv_path: str = "results/erro_padrao_modelos.csv"
     # Validação das colunas necessárias
     colunas_esperadas = {"Criptomoeda", "Modelo", "RMSE"}
     if not colunas_esperadas.issubset(df.columns):
-        logging.error(f"Colunas esperadas não encontradas. Esperado: {colunas_esperadas}")
+        logging.error(
+            f"Colunas esperadas não encontradas. Esperado: {colunas_esperadas}"
+        )
         return
 
     # Configuração visual
@@ -70,7 +78,14 @@ def gerar_graficos_erro_padrao(csv_path: str = "results/erro_padrao_modelos.csv"
         df_cripto.sort_values(by="RMSE", ascending=True, inplace=True)
 
         plt.figure(figsize=(10, 6))
-        ax = sns.barplot(x="RMSE", y="Modelo", data=df_cripto, hue="Modelo", palette="crest", legend=False)
+        ax = sns.barplot(
+            x="RMSE",
+            y="Modelo",
+            data=df_cripto,
+            hue="Modelo",
+            palette="crest",
+            legend=False,
+        )
         plt.title(f"Erro Padrão (RMSE) por Modelo - {cripto}")
         plt.xlabel("Erro Padrão (RMSE)")
         plt.ylabel("Modelo")
@@ -78,24 +93,44 @@ def gerar_graficos_erro_padrao(csv_path: str = "results/erro_padrao_modelos.csv"
 
         # Adiciona os valores ao lado ou dentro da barra, conforme o valor
         max_rmse = df_cripto["RMSE"].max()
-        threshold = max_rmse * 0.15  # define ponto de corte para mudar a posição do texto
+        threshold = (
+            max_rmse * 0.15
+        )  # define ponto de corte para mudar a posição do texto
 
         for i, (rmse, modelo) in enumerate(zip(df_cripto["RMSE"], df_cripto["Modelo"])):
             if rmse < threshold:
                 # texto à direita da barra
-                ax.text(rmse + max_rmse * 0.01, i, f"{rmse:.4f}", va='center', ha='left', fontsize=9, color='black')
+                ax.text(
+                    rmse + max_rmse * 0.01,
+                    i,
+                    f"{rmse:.4f}",
+                    va="center",
+                    ha="left",
+                    fontsize=9,
+                    color="black",
+                )
             else:
                 # texto dentro da barra (alinhado à direita)
-                ax.text(rmse - max_rmse * 0.01, i, f"{rmse:.4f}", va='center', ha='right', fontsize=9, color='white')
+                ax.text(
+                    rmse - max_rmse * 0.01,
+                    i,
+                    f"{rmse:.4f}",
+                    va="center",
+                    ha="right",
+                    fontsize=9,
+                    color="white",
+                )
 
         caminho_saida = os.path.join(pasta_saida, f"grafico_erro_padrao_{cripto}.png")
         plt.savefig(caminho_saida)
         plt.close()
         logging.info(f"[OK] Gráfico salvo: {caminho_saida}")
-        
+
         # === 1. Gráfico Comparativo Geral ===
         plt.figure(figsize=(14, 8))
-        ax = sns.barplot(data=df, x="Modelo", y="RMSE", hue="Criptomoeda", errorbar=None)
+        ax = sns.barplot(
+            data=df, x="Modelo", y="RMSE", hue="Criptomoeda", errorbar=None
+        )
         plt.title("Comparativo Geral de RMSE por Modelo e Criptomoeda")
         plt.ylabel("Erro Padrão (RMSE)")
         plt.xlabel("Modelo")
@@ -123,11 +158,19 @@ def gerar_graficos_erro_padrao(csv_path: str = "results/erro_padrao_modelos.csv"
 
         # Gráfico do ranking dos modelos com menor RMSE médio
         plt.figure(figsize=(10, 6))
-        ranking["Hue"] = ranking["Modelo"]  # dummy hue para ativar o uso de palette corretamente
-        ax = sns.barplot(data=ranking, x="RMSE Médio", y="Modelo", hue="Hue", palette="viridis", legend=False)
+        ranking["Hue"] = ranking[
+            "Modelo"
+        ]  # dummy hue para ativar o uso de palette corretamente
+        ax = sns.barplot(
+            data=ranking,
+            x="RMSE Médio",
+            y="Modelo",
+            hue="Hue",
+            palette="viridis",
+            legend=False,
+        )
         if ax.legend_ is not None:
             ax.legend_.remove()
-    
 
         # Adiciona os valores ao lado de cada barra
         for i, v in enumerate(ranking["RMSE Médio"]):

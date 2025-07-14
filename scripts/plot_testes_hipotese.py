@@ -5,11 +5,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Configuração do logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+)
+
 
 def plotar_graficos_teste_hipotese(
     caminho_csv: str = "results/teste_hipotese_retorno_diario.csv",
-    pasta_saida: str = "figures/hipotese"
+    pasta_saida: str = "figures/hipotese",
 ):
     """
     Gera três gráficos para ilustrar os resultados do teste de hipótese de retorno médio:
@@ -22,7 +25,7 @@ def plotar_graficos_teste_hipotese(
         pasta_saida (str): Diretório onde os gráficos serão salvos.
     """
     logging.info("[INÍCIO] Carregando dados do teste de hipótese...")
-    
+
     try:
         df = pd.read_csv(caminho_csv)
     except FileNotFoundError:
@@ -39,17 +42,15 @@ def plotar_graficos_teste_hipotese(
     try:
         plt.figure(figsize=(12, 6))
         sns.barplot(data=df, x="Criptomoeda", y="p-valor", hue="Modelo")
-        plt.axhline(0.05, color="red", linestyle="--", label="Nível de significância (0.05)")
+        plt.axhline(
+            0.05, color="red", linestyle="--", label="Nível de significância (0.05)"
+        )
         plt.title("Valores-p do Teste de Hipótese por Criptomoeda e Modelo")
         plt.ylabel("p-valor")
         plt.xlabel("Criptomoeda")
 
         # Legenda fora do gráfico (na lateral direita)
-        plt.legend(
-            bbox_to_anchor=(1.02, 1), 
-            loc='upper left', 
-            borderaxespad=0
-        )
+        plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left", borderaxespad=0)
 
         plt.xticks(rotation=45)
         plt.tight_layout(rect=[0, 0, 0.85, 1])  # Dá espaço para a legenda na direita
@@ -61,30 +62,31 @@ def plotar_graficos_teste_hipotese(
     except Exception as e:
         logging.error(f"[ERRO] Ao gerar gráfico de p-valores: {e}")
 
-
     # === 2. Gráfico de barras das médias de retorno ===
     try:
         criptos = df["Criptomoeda"].unique()
-        retorno_esperado = df["Retorno Esperado (%)"].iloc[0]  # Assumimos que é fixo para todos
+        retorno_esperado = df["Retorno Esperado (%)"].iloc[
+            0
+        ]  # Assumimos que é fixo para todos
 
         for cripto in criptos:
             df_cripto = df[df["Criptomoeda"] == cripto]
 
             plt.figure(figsize=(10, 5))
             sns.barplot(data=df_cripto, x="Modelo", y="Média Retorno (%)")
-            plt.axhline(retorno_esperado, color="green", linestyle="--",
-                        label=f"Retorno Esperado ({retorno_esperado:.1f}%)")
+            plt.axhline(
+                retorno_esperado,
+                color="green",
+                linestyle="--",
+                label=f"Retorno Esperado ({retorno_esperado:.1f}%)",
+            )
             plt.title(f"Média de Retorno Diário - {cripto}")
             plt.ylabel("Média de Retorno (%)")
             plt.xlabel("Modelo")
             plt.xticks(rotation=90)
 
             # Legenda com % e fora do gráfico
-            plt.legend(
-                bbox_to_anchor=(1.02, 1),
-                loc='upper left',
-                borderaxespad=0
-            )
+            plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left", borderaxespad=0)
 
             plt.tight_layout(rect=[0, 0, 0.85, 1])
             caminho_fig = os.path.join(pasta_saida, f"media_retornos_{cripto}.png")
@@ -94,7 +96,6 @@ def plotar_graficos_teste_hipotese(
 
     except Exception as e:
         logging.error(f"[ERRO] Ao gerar gráfico de médias de retorno por cripto: {e}")
-
 
     # === 3. Heatmap de rejeição da hipótese ===
     try:
@@ -115,8 +116,8 @@ def plotar_graficos_teste_hipotese(
             -0.5,
             legenda_texto,
             fontsize=10,
-            verticalalignment='top',
-            bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5')
+            verticalalignment="top",
+            bbox=dict(facecolor="white", edgecolor="black", boxstyle="round,pad=0.5"),
         )
 
         plt.tight_layout(rect=[0, 0, 0.85, 1])
@@ -127,5 +128,3 @@ def plotar_graficos_teste_hipotese(
 
     except Exception as e:
         logging.error(f"[ERRO] Ao gerar heatmap de rejeição: {e}")
-
-

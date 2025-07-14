@@ -31,11 +31,9 @@ for (cripto, modelo), grupo in df.groupby(["Criptomoeda", "Modelo"]):
         correlacao = None
         logging.warning(f"Grupo com poucos dados para correlação: {cripto} - {modelo}")
 
-    correlacoes.append({
-        "Criptomoeda": cripto,
-        "Modelo": modelo,
-        "Correlacao": correlacao
-    })
+    correlacoes.append(
+        {"Criptomoeda": cripto, "Modelo": modelo, "Correlacao": correlacao}
+    )
 
 # Salvar os resultados
 df_correlacoes = pd.DataFrame(correlacoes)

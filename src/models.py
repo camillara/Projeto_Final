@@ -9,7 +9,11 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
 from src.utils import preprocessar_dados, carregar_modelo, salvar_modelo
 from sklearn.preprocessing import MinMaxScaler
-from src.visualization import salvar_graficos_mlp, salvar_importancia_features, salvar_graficos_regressao
+from src.visualization import (
+    salvar_graficos_mlp,
+    salvar_importancia_features,
+    salvar_graficos_regressao,
+)
 from sklearn.feature_selection import SelectKBest, f_regression
 
 
@@ -19,7 +23,7 @@ def treinar_modelos(
     num_folds: int = 5,
     nome_cripto: str = "modelo",
     reutilizar: bool = True,
-    modelos_especificos: Optional[List[str]] = None
+    modelos_especificos: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """
     Treina e avalia modelos de regressão (Linear, Polinomial, MLP) com K-Fold CV ou reutiliza versões salvos.
@@ -30,7 +34,7 @@ def treinar_modelos(
         num_folds (int): Número de folds para cross-validation.
         nome_cripto (str): Nome base para salvar/carregar modelos.
         reutilizar (bool): Se True, tenta carregar modelos salvos.
-        modelos_especificos (List[str] | None): Lista com nomes dos modelos a treinar. 
+        modelos_especificos (List[str] | None): Lista com nomes dos modelos a treinar.
             Ex: ["LINEAR", "POLINOMIAL_2", "MLP"]. Se None, todos são treinados.
 
     Returns:
@@ -66,22 +70,24 @@ def treinar_modelos(
             modelo_lr = LinearRegression()
             modelo_lr.fit(X, y)
             salvar_modelo(modelo_lr, nome_modelo_lr)
-        mse_lr = -cross_val_score(modelo_lr, X, y, cv=kf, scoring='neg_mean_squared_error').mean()
+        mse_lr = -cross_val_score(
+            modelo_lr, X, y, cv=kf, scoring="neg_mean_squared_error"
+        ).mean()
         preds_lr = modelo_lr.predict(X)
         resultados["Linear"] = {
             "modelo": modelo_lr,
             "mse": mse_lr,
             "y_real": y.values,
-            "previsoes": preds_lr
+            "previsoes": preds_lr,
         }
-        
+
         salvar_graficos_regressao(
             nome_modelo="Linear",
             y_real=y.values,
             y_pred=preds_lr,
-            nome_cripto=nome_cripto
+            nome_cripto=nome_cripto,
         )
-        
+
         logging.info(f"[MODELOS] Regressão Linear: MSE médio = {mse_lr:.4f}")
 
     # Polynomial Regressions
@@ -90,7 +96,9 @@ def treinar_modelos(
     X_reduzido = seletor.fit_transform(X, y)
     nomes_features_selecionadas = X.columns[seletor.get_support()].tolist()
 
-    logging.info(f"[FEATURES] Selecionadas para Polynomial Regression: {nomes_features_selecionadas}")
+    logging.info(
+        f"[FEATURES] Selecionadas para Polynomial Regression: {nomes_features_selecionadas}"
+    )
 
     for grau in range(2, 11):
         modelo_nome = f"POLINOMIAL_{grau}"
@@ -102,31 +110,31 @@ def treinar_modelos(
 
         if modelo_poly is None:
             modelo_poly = make_pipeline(
-                PolynomialFeatures(degree=grau),
-                LinearRegression()
+                PolynomialFeatures(degree=grau), LinearRegression()
             )
             modelo_poly.fit(X_reduzido, y)
             salvar_modelo(modelo_poly, nome_modelo_poly)
 
-        mse_poly = -cross_val_score(modelo_poly, X_reduzido, y, cv=kf, scoring='neg_mean_squared_error').mean()
+        mse_poly = -cross_val_score(
+            modelo_poly, X_reduzido, y, cv=kf, scoring="neg_mean_squared_error"
+        ).mean()
         preds_poly = modelo_poly.predict(X_reduzido)
 
         resultados[modelo_nome] = {
             "modelo": modelo_poly,
             "mse": mse_poly,
             "y_real": y.values,
-            "previsoes": preds_poly
+            "previsoes": preds_poly,
         }
 
         salvar_graficos_regressao(
             nome_modelo=modelo_nome,
             y_real=y.values,
             y_pred=preds_poly,
-            nome_cripto=nome_cripto
+            nome_cripto=nome_cripto,
         )
 
         logging.info(f"[MODELOS] Polinomial Grau {grau}: MSE médio = {mse_poly:.4f}")
-
 
     # MLP Regressor
     if not modelos_especificos or "MLP" in modelos_especificos:
@@ -140,9 +148,9 @@ def treinar_modelos(
         if modelo_mlp is None:
             modelo_mlp = MLPRegressor(
                 hidden_layer_sizes=(256, 128, 64, 32),
-                activation='relu',
-                solver='adam',
-                learning_rate='adaptive',
+                activation="relu",
+                solver="adam",
+                learning_rate="adaptive",
                 learning_rate_init=0.0005,
                 alpha=0.0005,
                 max_iter=3000,
@@ -150,38 +158,42 @@ def treinar_modelos(
                 n_iter_no_change=600,
                 validation_fraction=0.2,
                 shuffle=True,
-                random_state=42
+                random_state=42,
             )
 
             modelo_mlp.fit(X_scaled, y)
             salvar_modelo(modelo_mlp, nome_modelo_mlp)
 
-        mse_mlp = -cross_val_score(modelo_mlp, X_scaled, y, cv=kf, scoring='neg_mean_squared_error').mean()
+        mse_mlp = -cross_val_score(
+            modelo_mlp, X_scaled, y, cv=kf, scoring="neg_mean_squared_error"
+        ).mean()
         preds_mlp = modelo_mlp.predict(X_scaled)
 
         resultados["MLP"] = {
             "modelo": modelo_mlp,
             "mse": mse_mlp,
             "y_real": y.values,
-            "previsoes": preds_mlp
+            "previsoes": preds_mlp,
         }
         logging.info(f"[MODELOS] MLP Regressor: MSE médio = {mse_mlp:.4f}")
-        
+
         salvar_graficos_mlp(
             y_real=y.values,
             y_pred=preds_mlp,
             loss_curve=modelo_mlp.loss_curve_,
-            nome_cripto=nome_cripto
+            nome_cripto=nome_cripto,
         )
-        
+
         salvar_importancia_features(
             modelo=modelo_mlp,
             X_scaled=X_scaled,
             y=y.values,
             feature_names=X.columns.tolist(),
-            nome_cripto=nome_cripto
+            nome_cripto=nome_cripto,
         )
 
-    logging.info(f"[FEATURES] Features utilizadas para treinamento: {X.columns.tolist()}")
+    logging.info(
+        f"[FEATURES] Features utilizadas para treinamento: {X.columns.tolist()}"
+    )
     logging.info("[MODELOS] Treinamento concluído com sucesso.")
     return resultados

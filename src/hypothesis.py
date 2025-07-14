@@ -5,14 +5,17 @@ import numpy as np
 import logging
 import os
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+)
+
 
 def executar_teste_hipotese_retorno_diario_real(
     caminho_csv: str = "results/evolucao_lucro_diario.csv",
     retorno_esperado: float = 0.1,
     nivel_significancia: float = 0.05,
     salvar_csv: bool = True,
-    caminho_saida: str = "results/teste_hipotese_retorno_diario.csv"
+    caminho_saida: str = "results/teste_hipotese_retorno_diario.csv",
 ) -> pd.DataFrame:
     """
     Executa um teste t unilateral de hipótese para verificar se o retorno percentual diário médio
@@ -54,14 +57,16 @@ def executar_teste_hipotese_retorno_diario_real(
     Exemplo:
         executar_teste_hipotese_retorno_diario_real(retorno_esperado=0.2)
     """
-    
+
     logging.info("[INÍCIO] Carregando CSV com dados de capital final diário...")
     df = pd.read_csv(caminho_csv)
-    df["Data"] = pd.to_datetime(df["Data"], errors='coerce')
+    df["Data"] = pd.to_datetime(df["Data"], errors="coerce")
 
     resultados = []
 
-    logging.info(f"[INFO] Iniciando testes de hipótese para retorno esperado ≥ {retorno_esperado}%")
+    logging.info(
+        f"[INFO] Iniciando testes de hipótese para retorno esperado ≥ {retorno_esperado}%"
+    )
 
     grupos = df.groupby(["Criptomoeda", "Modelo"])
     for (cripto, modelo), grupo in grupos:
@@ -70,26 +75,32 @@ def executar_teste_hipotese_retorno_diario_real(
         amostra = grupo["Retorno (%)"].dropna()
 
         if len(amostra) < 2:
-            logging.warning(f"[IGNORADO] {cripto} - {modelo}: amostra com menos de 2 valores.")
+            logging.warning(
+                f"[IGNORADO] {cripto} - {modelo}: amostra com menos de 2 valores."
+            )
             continue
 
         t_stat, p_valor = stats.ttest_1samp(amostra, retorno_esperado)
-        p_valor = stats.t.cdf(t_stat, df=len(amostra)-1)  
+        p_valor = stats.t.cdf(t_stat, df=len(amostra) - 1)
 
         rejeita_h0 = p_valor < nivel_significancia
 
-        resultados.append({
-            "Criptomoeda": cripto,
-            "Modelo": modelo,
-            "Média Retorno (%)": round(amostra.mean(), 4),
-            "Retorno Esperado (%)": retorno_esperado,
-            "N dias": len(amostra),
-            "Estatística t": round(t_stat, 4),
-            "p-valor": round(p_valor, 5),
-            "Rejeita H₀ (médio ≥ x%)": "Sim" if rejeita_h0 else "Não"
-        })
+        resultados.append(
+            {
+                "Criptomoeda": cripto,
+                "Modelo": modelo,
+                "Média Retorno (%)": round(amostra.mean(), 4),
+                "Retorno Esperado (%)": retorno_esperado,
+                "N dias": len(amostra),
+                "Estatística t": round(t_stat, 4),
+                "p-valor": round(p_valor, 5),
+                "Rejeita H₀ (médio ≥ x%)": "Sim" if rejeita_h0 else "Não",
+            }
+        )
 
-        logging.info(f"[OK] Testado {cripto} - {modelo}: p={p_valor:.5f} | Rejeita H₀: {'Sim' if rejeita_h0 else 'Não'}")
+        logging.info(
+            f"[OK] Testado {cripto} - {modelo}: p={p_valor:.5f} | Rejeita H₀: {'Sim' if rejeita_h0 else 'Não'}"
+        )
 
     df_resultado = pd.DataFrame(resultados)
 

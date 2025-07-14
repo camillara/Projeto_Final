@@ -3,11 +3,12 @@ import shutil
 import pandas as pd
 from scripts.anova_por_grupo_caracteristica import executar_anova_por_grupo
 
+
 def test_executar_anova_por_grupo(tmp_path):
     # Dados de teste
     dados = {
         "Criptomoeda": ["BTC", "ETH", "XRP", "BTC", "ETH", "XRP", "BTC", "ETH", "XRP"],
-        "Média Retorno (%)": [0.5, 0.3, 0.2, 0.7, 0.4, 0.1, 0.6, 0.35, 0.15]
+        "Média Retorno (%)": [0.5, 0.3, 0.2, 0.7, 0.4, 0.1, 0.6, 0.35, 0.15],
     }
     df = pd.DataFrame(dados)
 
@@ -28,10 +29,9 @@ def test_executar_anova_por_grupo(tmp_path):
         "medias_por_grupo.csv",
         "anova_resultados.csv",
         "shapiro_wilk.txt",
-        "levene.txt"
+        "levene.txt",
     ]
 
     for nome_arquivo in arquivos_esperados:
         caminho = os.path.join(pasta_saida, nome_arquivo)
         assert os.path.exists(caminho), f"Arquivo não encontrado: {nome_arquivo}"
-

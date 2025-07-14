@@ -19,7 +19,7 @@ df = pd.read_csv(caminho_csv)
 
 # Converte a coluna Data, se necessário
 try:
-    df["Data"] = pd.to_datetime(df["Data"], errors='coerce')
+    df["Data"] = pd.to_datetime(df["Data"], errors="coerce")
 except Exception as e:
     logging.warning(f"Falha ao converter coluna Data: {e}")
 

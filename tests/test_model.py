@@ -4,22 +4,26 @@ from typing import Any, Dict
 from unittest.mock import patch
 from src.models import treinar_modelos
 
+
 def gerar_dataframe_teste() -> pd.DataFrame:
     """
     Gera um DataFrame fictício para testes com colunas esperadas.
     """
     np.random.seed(42)
-    datas = pd.date_range(start="2022-01-01", periods=100, freq='D')
-    df = pd.DataFrame({
-        "Data": datas,
-        "Fechamento": np.random.rand(100) * 1000,
-        "Volume": np.random.rand(100) * 10000,
-        "Retorno": np.random.rand(100),
-        "MediaMovel_7d": np.random.rand(100),
-        "DesvioPadrao_7d": np.random.rand(100),
-        "TendenciaAlta": np.random.randint(0, 2, 100)
-    })
+    datas = pd.date_range(start="2022-01-01", periods=100, freq="D")
+    df = pd.DataFrame(
+        {
+            "Data": datas,
+            "Fechamento": np.random.rand(100) * 1000,
+            "Volume": np.random.rand(100) * 10000,
+            "Retorno": np.random.rand(100),
+            "MediaMovel_7d": np.random.rand(100),
+            "DesvioPadrao_7d": np.random.rand(100),
+            "TendenciaAlta": np.random.randint(0, 2, 100),
+        }
+    )
     return df
+
 
 @patch("src.models.carregar_modelo", return_value=None)
 @patch("src.models.salvar_modelo")
@@ -33,7 +37,7 @@ def test_treinar_modelos_linear_mlp_poly(
     mock_mlp_grafico,
     mock_regressao,
     mock_salvar_modelo,
-    mock_carregar_modelo
+    mock_carregar_modelo,
 ) -> None:
     """
     Testa o treinamento dos modelos Linear, MLP e Polinomial Grau 2 com um DataFrame de exemplo.
@@ -47,7 +51,7 @@ def test_treinar_modelos_linear_mlp_poly(
         num_folds=3,
         nome_cripto="TESTE",
         reutilizar=False,
-        modelos_especificos=["LINEAR", "MLP", "POLINOMIAL_2"]
+        modelos_especificos=["LINEAR", "MLP", "POLINOMIAL_2"],
     )
 
     assert "Linear" in resultados

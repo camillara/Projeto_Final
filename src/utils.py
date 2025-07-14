@@ -13,6 +13,7 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
+
 def plot_grafico_retorno(df_resultados: pd.DataFrame, modelo: str = "MLP") -> None:
     """
     Gera e salva um gráfico de barras com o retorno percentual por criptomoeda para o modelo especificado.
@@ -23,7 +24,9 @@ def plot_grafico_retorno(df_resultados: pd.DataFrame, modelo: str = "MLP") -> No
     """
     nome_coluna: str = f"RetornoPercentual_{modelo}"
     if nome_coluna not in df_resultados.columns:
-        print(f"[AVISO] Coluna '{nome_coluna}' não encontrada. Gráfico de retorno não será gerado.")
+        print(
+            f"[AVISO] Coluna '{nome_coluna}' não encontrada. Gráfico de retorno não será gerado."
+        )
         return
 
     os.makedirs("figures", exist_ok=True)
@@ -72,6 +75,7 @@ def carregar_modelo(nome: str, pasta: str = "modelos") -> Any:
         return joblib.load(caminho)
     return None
 
+
 # === PREPROCESSAMENTO DE DADOS ===
 def preprocessar_dados(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -90,7 +94,7 @@ def preprocessar_dados(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: DataFrame limpo e pronto para uso.
     """
     df = df.copy()
-    
+
     logging.info(f"[PREPROCESSAMENTO] Iniciando o pré-processamento...")
 
     if "Data" in df.columns:
@@ -104,32 +108,32 @@ def preprocessar_dados(df: pd.DataFrame) -> pd.DataFrame:
 
     if "Volume" in df.columns:
         df["Volume"] = pd.to_numeric(df["Volume"], errors="coerce")
-    
+
     df = adicionar_features_basicas(df)
 
     colunas_validas = df.select_dtypes(include=["number", "bool"]).columns.tolist()
     if "Fechamento" in df.columns:
         colunas_validas.append("Fechamento")
     colunas_validas = list(set(colunas_validas))  # remove duplicatas
-    
+
     logging.info("[PREPROCESSAMENTO] Pré-processamento finalizado com sucesso.")
-    
+
     return df[colunas_validas + (["Data"] if "Data" in df.columns else [])]
 
 
 # ===SALVAR MEDIDAS DE DISPERSÃO===
 def salvar_medidas_dispersao(nome_cripto, desvio, variancia, amplitude, iqr):
     path = "results/medidas_dispersao.csv"
-    headers = ['Criptomoeda', 'Desvio Padrao', 'Variancia', 'Amplitude', 'IQR']
+    headers = ["Criptomoeda", "Desvio Padrao", "Variancia", "Amplitude", "IQR"]
 
     linha = [nome_cripto, desvio, variancia, amplitude, iqr]
 
     try:
-        with open(path, 'x', newline='') as csvfile:  # cria se não existir
+        with open(path, "x", newline="") as csvfile:  # cria se não existir
             writer = csv.writer(csvfile)
             writer.writerow(headers)
             writer.writerow(linha)
     except FileExistsError:
-        with open(path, 'a', newline='') as csvfile:  # adiciona se já existir
+        with open(path, "a", newline="") as csvfile:  # adiciona se já existir
             writer = csv.writer(csvfile)
             writer.writerow(linha)

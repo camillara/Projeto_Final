@@ -10,7 +10,7 @@ from src.visualization import (
     calcular_dispersao,
     plotar_dispersao_e_lucros,
     plot_comparativo_modelos_por_cripto,
-    plot_analise_exploratoria_conjunta
+    plot_analise_exploratoria_conjunta,
 )
 from src.models import treinar_modelos
 from src.evaluation import simular_estrategia_investimento, comparar_modelos_regressao
@@ -23,67 +23,138 @@ from scripts.plot_testes_hipotese import plotar_graficos_teste_hipotese
 from scripts.anova_retorno_criptos import executar_anova
 from scripts.anova_por_grupo_caracteristica import executar_anova_por_grupo
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Análise e processamento de dados de criptomoedas"
     )
 
     parser.add_argument("--crypto", type=str, help="Nome da criptomoeda (ex: BTCUSDT)")
-    parser.add_argument("--show", action="store_true", help="Exibir os primeiros registros")
-    parser.add_argument("--graficos", action="store_true", help="Gerar gráficos estatísticos")
-    parser.add_argument("--treinar_modelos", action="store_true", help="Treinar modelos (MLP, Linear, Polinomial)")
-    parser.add_argument("--simular", action="store_true", help="Simular estratégia de investimento com todos os modelos")
-    parser.add_argument("--threshold", type=float, help="Valor mínimo de previsão para decidir compra (ex: 0.01)")
-    parser.add_argument("--todas", action="store_true", help="Executar simulações para todas as criptomoedas")
-    parser.add_argument("--forcar_treinamento", action="store_true", help="Forçar re-treinamento mesmo que modelos já existam")
-    parser.add_argument("--analise_completa", action="store_true", help="Executar análise gráfica e estatística completa para todas as criptomoedas")
-    parser.add_argument("--model", type=str, help="Nome do modelo a ser usado (MLP, Linear, Polinomial)")
-    parser.add_argument("--kfolds", type=int, default=5, help="Número de folds para validação cruzada KFold (padrão = 5)")
-    parser.add_argument("--comparar_modelos", action="store_true", help="Executar comparação de desempenho entre os modelos")
-    parser.add_argument("--gerar_equacoes", action="store_true", help="Gerar equações dos modelos regressivos")
+    parser.add_argument(
+        "--show", action="store_true", help="Exibir os primeiros registros"
+    )
+    parser.add_argument(
+        "--graficos", action="store_true", help="Gerar gráficos estatísticos"
+    )
+    parser.add_argument(
+        "--treinar_modelos",
+        action="store_true",
+        help="Treinar modelos (MLP, Linear, Polinomial)",
+    )
+    parser.add_argument(
+        "--simular",
+        action="store_true",
+        help="Simular estratégia de investimento com todos os modelos",
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        help="Valor mínimo de previsão para decidir compra (ex: 0.01)",
+    )
+    parser.add_argument(
+        "--todas",
+        action="store_true",
+        help="Executar simulações para todas as criptomoedas",
+    )
+    parser.add_argument(
+        "--forcar_treinamento",
+        action="store_true",
+        help="Forçar re-treinamento mesmo que modelos já existam",
+    )
+    parser.add_argument(
+        "--analise_completa",
+        action="store_true",
+        help="Executar análise gráfica e estatística completa para todas as criptomoedas",
+    )
+    parser.add_argument(
+        "--model", type=str, help="Nome do modelo a ser usado (MLP, Linear, Polinomial)"
+    )
+    parser.add_argument(
+        "--kfolds",
+        type=int,
+        default=5,
+        help="Número de folds para validação cruzada KFold (padrão = 5)",
+    )
+    parser.add_argument(
+        "--comparar_modelos",
+        action="store_true",
+        help="Executar comparação de desempenho entre os modelos",
+    )
+    parser.add_argument(
+        "--gerar_equacoes",
+        action="store_true",
+        help="Gerar equações dos modelos regressivos",
+    )
     parser.add_argument("--grau-min", type=int, default=1, help="Grau mínimo")
     parser.add_argument("--grau-max", type=int, default=5, help="Grau máximo")
-    parser.add_argument("--gerar-erro-padrao", action="store_true", help="Gera o erro padrão (RMSE) para cada cripto e modelo.")
-    parser.add_argument("--graficos-erro-padrao", "--graficos_erro_padrao", dest="graficos_erro_padrao", action="store_true", help="Gera os gráficos de erro padrão.")
-    parser.add_argument("--testar-hipotese-retorno", action="store_true", help="Executa o teste t de hipótese sobre o retorno médio diário.")
-    parser.add_argument("--retorno-esperado", type=float, default=0.1, help="Valor de retorno médio diário esperado (em %), ex: 0.1 para 0.1%.")
-    parser.add_argument("--gerar-graficos", action="store_true", help="Gera gráficos com os resultados do teste de hipótese.")
-    parser.add_argument("--anova-retorno", action="store_true", help="Executa ANOVA para comparar retornos médios entre criptomoedas.")
-    parser.add_argument("--anova-grupo-retorno", action="store_true", help="Executa ANOVA entre grupos por retorno médio diário.")
-    
+    parser.add_argument(
+        "--gerar-erro-padrao",
+        action="store_true",
+        help="Gera o erro padrão (RMSE) para cada cripto e modelo.",
+    )
+    parser.add_argument(
+        "--graficos-erro-padrao",
+        "--graficos_erro_padrao",
+        dest="graficos_erro_padrao",
+        action="store_true",
+        help="Gera os gráficos de erro padrão.",
+    )
+    parser.add_argument(
+        "--testar-hipotese-retorno",
+        action="store_true",
+        help="Executa o teste t de hipótese sobre o retorno médio diário.",
+    )
+    parser.add_argument(
+        "--retorno-esperado",
+        type=float,
+        default=0.1,
+        help="Valor de retorno médio diário esperado (em %), ex: 0.1 para 0.1%.",
+    )
+    parser.add_argument(
+        "--gerar-graficos",
+        action="store_true",
+        help="Gera gráficos com os resultados do teste de hipótese.",
+    )
+    parser.add_argument(
+        "--anova-retorno",
+        action="store_true",
+        help="Executa ANOVA para comparar retornos médios entre criptomoedas.",
+    )
+    parser.add_argument(
+        "--anova-grupo-retorno",
+        action="store_true",
+        help="Executa ANOVA entre grupos por retorno médio diário.",
+    )
+
     args = parser.parse_args()
 
     dados = carregar_multiplas_criptomoedas("data")
-    
+
     if args.gerar_equacoes:
         gerar_equacoes(grau_min=args.grau_min, grau_max=args.grau_max)
-        return 
-    
-    
+        return
+
     if args.gerar_erro_padrao:
         calcular_erro_padrao()
-        return 
-    
+        return
+
     if args.graficos_erro_padrao:
         gerar_graficos_erro_padrao()
         return
-    
 
     if args.testar_hipotese_retorno:
         print("\n[INFO] Executando teste de hipótese sobre o retorno médio diário...\n")
         resultado_hipotese = executar_teste_hipotese_retorno_diario_real(
-            retorno_esperado=args.retorno_esperado,
-            salvar_csv=True
+            retorno_esperado=args.retorno_esperado, salvar_csv=True
         )
         print(resultado_hipotese.to_string(index=False))
 
         if args.gerar_graficos:
             print("\n[INFO] Gerando gráficos do teste de hipótese...\n")
             plotar_graficos_teste_hipotese()
-        
+
         return
-    
-    
+
     if args.anova_retorno:
         caminho_csv = "results/teste_hipotese_retorno_diario.csv"
         pasta_saida = "results"
@@ -91,61 +162,60 @@ def main():
         executar_anova(caminho_csv, pasta_saida)
         return
 
-
     if args.anova_grupo_retorno:
         caminho_csv = os.path.join("results", "teste_hipotese_retorno_diario.csv")
         pasta_saida = "results/anova_grupo_retorno"
-        executar_anova_por_grupo(caminho_csv, pasta_saida, coluna_agrupadora="Média Retorno (%)")
+        executar_anova_por_grupo(
+            caminho_csv, pasta_saida, coluna_agrupadora="Média Retorno (%)"
+        )
         return
-
 
     if args.comparar_modelos:
         if args.crypto:
-           criptos = [args.crypto.upper()]
+            criptos = [args.crypto.upper()]
         else:
-           criptos = list(dados.keys())
-           print(f"[INFO] Comparando modelos para todas as criptomoedas: {', '.join(criptos)}\n")
-
+            criptos = list(dados.keys())
+            print(
+                f"[INFO] Comparando modelos para todas as criptomoedas: {', '.join(criptos)}\n"
+            )
 
         df_planilha = pd.read_csv("results/previsto_real_por_modelo_por_cripto.csv")
-        df_planilha.columns = df_planilha.columns.str.strip()  # remove espaços invisíveis
-
+        df_planilha.columns = (
+            df_planilha.columns.str.strip()
+        )  # remove espaços invisíveis
 
         for nome in criptos:
-           print(f"[INFO] Comparando modelos para {nome}...")
+            print(f"[INFO] Comparando modelos para {nome}...")
 
+            df_cripto = df_planilha[df_planilha["Criptomoeda"] == nome]
 
-           df_cripto = df_planilha[df_planilha["Criptomoeda"] == nome]
+            if df_cripto.empty:
+                print(f"[AVISO] Nenhum dado encontrado para {nome} na planilha.")
+                continue
 
+            modelos_disponiveis = df_cripto["Modelo"].unique()
+            resultados: dict[str, dict[str, np.ndarray]] = {}
 
-           if df_cripto.empty:
-               print(f"[AVISO] Nenhum dado encontrado para {nome} na planilha.")
-               continue
+            for modelo in modelos_disponiveis:
+                df_modelo = df_cripto[df_cripto["Modelo"] == modelo]
+                resultados[modelo] = {
+                    "previsoes": df_modelo["Valor Previsto"].values,
+                    "reais": df_modelo["Valor Real"].values,
+                    "simulacao": pd.DataFrame(
+                        {
+                            "PrecoHoje": df_modelo["Valor Real"].values,
+                            "PrecoPrevisto": df_modelo["Valor Previsto"].values,
+                        }
+                    ),
+                }
 
-
-           modelos_disponiveis = df_cripto["Modelo"].unique()
-           resultados: dict[str, dict[str, np.ndarray]] = {}
-
-
-           for modelo in modelos_disponiveis:
-               df_modelo = df_cripto[df_cripto["Modelo"] == modelo]
-               resultados[modelo] = {
-                   "previsoes": df_modelo["Valor Previsto"].values,
-                   "reais": df_modelo["Valor Real"].values,
-                   "simulacao": pd.DataFrame({
-                       "PrecoHoje": df_modelo["Valor Real"].values,
-                       "PrecoPrevisto": df_modelo["Valor Previsto"].values
-                   })
-               }
-
-
-           caminho_saida = os.path.join("figures", "dispersao", nome)
-           os.makedirs(caminho_saida, exist_ok=True)
-           plotar_dispersao_e_lucros(resultados, caminho_saida)
-           print("[OK] Comparação entre modelos finalizada. Gráficos e métricas salvos em /figures.")
+            caminho_saida = os.path.join("figures", "dispersao", nome)
+            os.makedirs(caminho_saida, exist_ok=True)
+            plotar_dispersao_e_lucros(resultados, caminho_saida)
+            print(
+                "[OK] Comparação entre modelos finalizada. Gráficos e métricas salvos em /figures."
+            )
         return
-
-
 
     if args.todas:
         print("[INFO] Executando para todas as criptomoedas da pasta /data...\n")
@@ -161,7 +231,7 @@ def main():
                 nome_cripto=nome,
                 reutilizar=not args.forcar_treinamento,
                 modelos_especificos=[args.model.upper()] if args.model else None,
-                num_folds=args.kfolds
+                num_folds=args.kfolds,
             )
 
             linha_resultado = {"Criptomoeda": nome}
@@ -175,59 +245,81 @@ def main():
                 y_pred = resultado.get("previsoes")
                 if y_real is not None and y_pred is not None:
                     for real, pred in zip(y_real, y_pred):
-                        previsto_real_geral.append({
-                            "Criptomoeda": nome,
-                            "Modelo": modelo_nome,
-                            "Valor Real": real,
-                            "Valor Previsto": pred
-                        })
+                        previsto_real_geral.append(
+                            {
+                                "Criptomoeda": nome,
+                                "Modelo": modelo_nome,
+                                "Valor Real": real,
+                                "Valor Previsto": pred,
+                            }
+                        )
 
                 if predicoes is not None:
                     lucro_total, df_sim = simular_estrategia_investimento(
                         df, predicoes, threshold=args.threshold or 0.01
                     )
-                    linha_resultado[f"RetornoPercentual_{modelo_nome}"] = df_sim["RetornoPercentual"].iloc[-1]
+                    linha_resultado[f"RetornoPercentual_{modelo_nome}"] = df_sim[
+                        "RetornoPercentual"
+                    ].iloc[-1]
                     linha_resultado[f"Lucro_{modelo_nome}"] = lucro_total
 
-                    
                     if not df_sim.empty and "CapitalFinal" in df_sim.columns:
                         for i, row in df_sim.iterrows():
-                            evolucao_diaria_lucro.append({
-                                "Data": row.get("Data", f"Dia {i+1}"),
-                                "Criptomoeda": nome,
-                                "Modelo": modelo_nome,
-                                "CapitalFinal": row["CapitalFinal"]
-                            })
+                            evolucao_diaria_lucro.append(
+                                {
+                                    "Data": row.get("Data", f"Dia {i+1}"),
+                                    "Criptomoeda": nome,
+                                    "Modelo": modelo_nome,
+                                    "CapitalFinal": row["CapitalFinal"],
+                                }
+                            )
                 else:
                     linha_resultado[f"RetornoPercentual_{modelo_nome}"] = None
                     linha_resultado[f"Lucro_{modelo_nome}"] = None
 
             # Estatísticas descritivas do preço de fechamento
-            linha_resultado.update({
-                "Média": df["Fechamento"].mean(),
-                "Mediana": df["Fechamento"].median(),
-                "Moda": df["Fechamento"].mode().iloc[0] if not df["Fechamento"].mode().empty else None,
-                "Desvio Padrão": df["Fechamento"].std(),
-                "Variância": df["Fechamento"].var(),
-                "Coef. Variação (%)": (df["Fechamento"].std() / df["Fechamento"].mean()) * 100
-            })
+            linha_resultado.update(
+                {
+                    "Média": df["Fechamento"].mean(),
+                    "Mediana": df["Fechamento"].median(),
+                    "Moda": (
+                        df["Fechamento"].mode().iloc[0]
+                        if not df["Fechamento"].mode().empty
+                        else None
+                    ),
+                    "Desvio Padrão": df["Fechamento"].std(),
+                    "Variância": df["Fechamento"].var(),
+                    "Coef. Variação (%)": (
+                        df["Fechamento"].std() / df["Fechamento"].mean()
+                    )
+                    * 100,
+                }
+            )
 
             resultados_simulacoes.append(linha_resultado)
 
         df_resultados = pd.DataFrame(resultados_simulacoes)
-        col_ordenacao = "RetornoPercentual_MLP" if "RetornoPercentual_MLP" in df_resultados.columns else df_resultados.columns[1]
+        col_ordenacao = (
+            "RetornoPercentual_MLP"
+            if "RetornoPercentual_MLP" in df_resultados.columns
+            else df_resultados.columns[1]
+        )
         df_resultados.sort_values(by=col_ordenacao, ascending=False, inplace=True)
-        
+
         df_evolucao = pd.DataFrame(evolucao_diaria_lucro)
         os.makedirs("results", exist_ok=True)
-        
+
         df_resultados.to_csv("results/resultados_simulacoes.csv", index=False)
         print("\n[OK] Resultados salvos em results/resultados_simulacoes.csv")
 
         # Salvando previsto vs real
         df_previsto_real = pd.DataFrame(previsto_real_geral)
-        df_previsto_real.to_csv("results/previsto_real_por_modelo_por_cripto.csv", index=False)
-        print("[OK] Valores reais e previstos salvos em results/previsto_real_por_modelo_por_cripto.csv")
+        df_previsto_real.to_csv(
+            "results/previsto_real_por_modelo_por_cripto.csv", index=False
+        )
+        print(
+            "[OK] Valores reais e previstos salvos em results/previsto_real_por_modelo_por_cripto.csv"
+        )
 
         # Salvando evolução do capital diário
         df_evolucao.to_csv("results/evolucao_lucro_diario.csv", index=False)
@@ -244,12 +336,13 @@ def main():
             if nome_coluna in df_resultados.columns:
                 plot_grafico_retorno(df_resultados, modelo=f"POLINOMIAL_{grau}")
 
-        modelos_disponiveis = [col for col in df_resultados.columns if col.startswith("RetornoPercentual_")]
+        modelos_disponiveis = [
+            col for col in df_resultados.columns if col.startswith("RetornoPercentual_")
+        ]
         if len(modelos_disponiveis) > 1:
             plot_comparativo_modelos_por_cripto(df_resultados)
 
         return
-
 
     if not args.crypto:
         print("[ERRO] Informe --crypto ou use --todas.")
@@ -278,32 +371,44 @@ def main():
             nome_cripto=args.crypto.upper(),
             reutilizar=not args.forcar_treinamento,
             modelos_especificos=[args.model.upper()] if args.model else None,
-            num_folds=args.kfolds
+            num_folds=args.kfolds,
         )
 
         print("[RESULTADOS - MÉDIA DE ERRO QUADRÁTICO (MSE) - KFold]")
         for nome, info in resultados.items():
-            mse = info['mse']
-            print(f"{nome}: MSE médio = {mse:.4f}" if mse is not None and not pd.isna(mse) else f"{nome}: modelo carregado (MSE não reavaliado)")
+            mse = info["mse"]
+            print(
+                f"{nome}: MSE médio = {mse:.4f}"
+                if mse is not None and not pd.isna(mse)
+                else f"{nome}: modelo carregado (MSE não reavaliado)"
+            )
 
         if args.simular:
-            print(f"\n[INFO] Simulando estratégia com MLP para {args.crypto.upper()}...\n")
+            print(
+                f"\n[INFO] Simulando estratégia com MLP para {args.crypto.upper()}...\n"
+            )
             mlp_model = resultados.get("MLP", {}).get("modelo")
 
             if mlp_model:
                 colunas_remover = ["Fechamento", "Data"]
-                X_final = df.drop(columns=[col for col in colunas_remover if col in df.columns])
+                X_final = df.drop(
+                    columns=[col for col in colunas_remover if col in df.columns]
+                )
                 y_final = df["Fechamento"]
 
                 mlp_model.fit(X_final, y_final)
                 y_pred = mlp_model.predict(X_final)
 
-                _, df_simulacao = simular_estrategia_investimento(df, y_pred, threshold=args.threshold or 0.01)
+                _, df_simulacao = simular_estrategia_investimento(
+                    df, y_pred, threshold=args.threshold or 0.01
+                )
             else:
                 print("[ERRO] Modelo MLP não encontrado nos resultados.")
 
     if args.analise_completa:
-        print("[INFO] Executando análise gráfica e estatística para todas as criptomoedas...\n")
+        print(
+            "[INFO] Executando análise gráfica e estatística para todas as criptomoedas...\n"
+        )
         for nome, df in dados.items():
             print(f"\nGerando gráficos e estatísticas para {nome}...")
             plot_analise_exploratoria_conjunta(df, nome)
@@ -311,8 +416,7 @@ def main():
 
         print("\n[OK] Gráficos salvos em figures/, medidas de dispersão no log.")
         return
-    
-    
-    
+
+
 if __name__ == "__main__":
     main()

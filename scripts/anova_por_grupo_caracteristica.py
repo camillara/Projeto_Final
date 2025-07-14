@@ -7,10 +7,14 @@ from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from scipy.stats import shapiro, levene
 
 # Configuração do logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
-def executar_anova_por_grupo(caminho_csv: str, pasta_saida: str, coluna_agrupadora: str):
+def executar_anova_por_grupo(
+    caminho_csv: str, pasta_saida: str, coluna_agrupadora: str
+):
     """
     Executa uma ANOVA entre grupos formados com base em uma característica comum
     (como 'Média Retorno (%)').
@@ -80,10 +84,16 @@ def executar_anova_por_grupo(caminho_csv: str, pasta_saida: str, coluna_agrupado
 
         # Post hoc Tukey se ANOVA for significativa
         if anova["PR(>F)"].iloc[0] < 0.05:
-            tukey = pairwise_tukeyhsd(endog=df["Retorno"], groups=df["Grupo"], alpha=0.05)
+            tukey = pairwise_tukeyhsd(
+                endog=df["Retorno"], groups=df["Grupo"], alpha=0.05
+            )
             logging.info("\n[Post Hoc - Tukey HSD]\n" + str(tukey.summary()))
-            tukey_df = pd.DataFrame(tukey.summary().data[1:], columns=tukey.summary().data[0])
-            tukey_df.to_csv(os.path.join(pasta_saida, "tukey_posthoc_resultados.csv"), index=False)
+            tukey_df = pd.DataFrame(
+                tukey.summary().data[1:], columns=tukey.summary().data[0]
+            )
+            tukey_df.to_csv(
+                os.path.join(pasta_saida, "tukey_posthoc_resultados.csv"), index=False
+            )
 
         logging.info("[FIM] Análise ANOVA por grupo concluída com sucesso.")
 

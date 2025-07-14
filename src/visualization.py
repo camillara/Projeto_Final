@@ -14,7 +14,9 @@ from src.utils import salvar_medidas_dispersao
 
 # Evita reconfigurar o logging se ele já estiver configurado
 if not logging.getLogger().hasHandlers():
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    )
 
 
 def salvar_grafico(nome: str, pasta: str = "figures", dpi: int = 150) -> None:
@@ -42,7 +44,7 @@ def plot_boxplot(df: pd.DataFrame, nome_cripto: str) -> None:
         nome_cripto (str): Nome da criptomoeda.
     """
     plt.figure(figsize=(6, 4))
-    sns.boxplot(y=df['Fechamento'])
+    sns.boxplot(y=df["Fechamento"])
     plt.title(f"Boxplot - {nome_cripto}")
     plt.ylabel("Preço de Fechamento")
     salvar_grafico(f"{nome_cripto}_boxplot")
@@ -57,7 +59,7 @@ def plot_histograma(df: pd.DataFrame, nome_cripto: str) -> None:
         nome_cripto (str): Nome da criptomoeda.
     """
     plt.figure(figsize=(6, 4))
-    sns.histplot(df['Fechamento'], bins=30, kde=True)
+    sns.histplot(df["Fechamento"], bins=30, kde=True)
     plt.title(f"Histograma - {nome_cripto}")
     plt.xlabel("Preço de Fechamento")
     plt.ylabel("Frequência")
@@ -79,9 +81,9 @@ def moda_rolante(series: pd.Series) -> Optional[float]:
         return moda
     except Exception as e:
         logging.warning(f"Erro ao calcular moda rolante: {e}")
-        return float('nan')
-    
-    
+        return float("nan")
+
+
 def calcular_dispersao(df: pd.DataFrame, nome_cripto: str) -> None:
     """
     Calcula e exibe as medidas de dispersão para a criptomoeda.
@@ -90,7 +92,7 @@ def calcular_dispersao(df: pd.DataFrame, nome_cripto: str) -> None:
         df (pd.DataFrame): DataFrame com a coluna 'Fechamento'.
         nome_cripto (str): Nome da criptomoeda.
     """
-    fechamento = df['Fechamento'].dropna()
+    fechamento = df["Fechamento"].dropna()
     desvio_padrao = fechamento.std()
     variancia = fechamento.var()
     amplitude = fechamento.max() - fechamento.min()
@@ -116,24 +118,26 @@ def plot_linha_media_mediana_moda(df: pd.DataFrame, nome_cripto: str) -> None:
         nome_cripto (str): Nome da criptomoeda.
     """
     df = df.copy()
-    df['Media'] = df['Fechamento'].rolling(window=7).mean()
-    df['Mediana'] = df['Fechamento'].rolling(window=7).median()
-    df['Moda'] = df['Fechamento'].rolling(window=7).apply(moda_rolante, raw=False)
+    df["Media"] = df["Fechamento"].rolling(window=7).mean()
+    df["Mediana"] = df["Fechamento"].rolling(window=7).median()
+    df["Moda"] = df["Fechamento"].rolling(window=7).apply(moda_rolante, raw=False)
 
     plt.figure(figsize=(10, 5))
-    plt.plot(df['Data'], df['Fechamento'], label='Fechamento', linewidth=1)
-    plt.plot(df['Data'], df['Media'], label='Média (7d)', linestyle='--')
-    plt.plot(df['Data'], df['Mediana'], label='Mediana (7d)', linestyle='-.')
-    plt.plot(df['Data'], df['Moda'], label='Moda (7d)', linestyle=':')
+    plt.plot(df["Data"], df["Fechamento"], label="Fechamento", linewidth=1)
+    plt.plot(df["Data"], df["Media"], label="Média (7d)", linestyle="--")
+    plt.plot(df["Data"], df["Mediana"], label="Mediana (7d)", linestyle="-.")
+    plt.plot(df["Data"], df["Moda"], label="Moda (7d)", linestyle=":")
 
     plt.title(f"Preço de Fechamento ao Longo do Tempo - {nome_cripto}")
     plt.xlabel("Data")
     plt.ylabel("Preço")
     plt.legend()
     salvar_grafico(f"{nome_cripto}_linha_tempo")
-    
 
-def plotar_dispersao_e_lucros(resultados: Dict[str, Dict], pasta: str = "figures") -> None:
+
+def plotar_dispersao_e_lucros(
+    resultados: Dict[str, Dict], pasta: str = "figures"
+) -> None:
     """
     Gera três gráficos e arquivos:
     1. Diagrama de dispersão das previsões vs valores reais para todos os modelos.
@@ -154,18 +158,32 @@ def plotar_dispersao_e_lucros(resultados: Dict[str, Dict], pasta: str = "figures
     plt.figure(figsize=(12, 8))
     for nome_modelo, info in resultados.items():
         if nome_modelo == "MLP":
-            y_real = resultados['MLP']['simulacao']['PrecoHoje'].values if 'PrecoHoje' in resultados['MLP']['simulacao'] else resultados['MLP']['simulacao'].get('PrecoHoje', [])
+            y_real = (
+                resultados["MLP"]["simulacao"]["PrecoHoje"].values
+                if "PrecoHoje" in resultados["MLP"]["simulacao"]
+                else resultados["MLP"]["simulacao"].get("PrecoHoje", [])
+            )
         else:
-            y_real = resultados[nome_modelo]['simulacao']['PrecoHoje'].values if 'PrecoHoje' in resultados[nome_modelo]['simulacao'] else resultados[nome_modelo]['simulacao'].get('PrecoHoje', [])
-        previsoes = info["previsoes"][:len(y_real)]
+            y_real = (
+                resultados[nome_modelo]["simulacao"]["PrecoHoje"].values
+                if "PrecoHoje" in resultados[nome_modelo]["simulacao"]
+                else resultados[nome_modelo]["simulacao"].get("PrecoHoje", [])
+            )
+        previsoes = info["previsoes"][: len(y_real)]
         if len(previsoes) != len(y_real) or len(y_real) == 0:
-            logging.warning(f"[Dispersão] Modelo '{nome_modelo}' ignorado por dados inconsistentes.")
+            logging.warning(
+                f"[Dispersão] Modelo '{nome_modelo}' ignorado por dados inconsistentes."
+            )
             continue
 
         plt.scatter(y_real, previsoes, label=nome_modelo, alpha=0.6)
-        logging.info(f"[Dispersão] Modelo '{nome_modelo}' plotado com {len(previsoes)} pontos.")
+        logging.info(
+            f"[Dispersão] Modelo '{nome_modelo}' plotado com {len(previsoes)} pontos."
+        )
 
-    plt.plot([min(y_real), max(y_real)], [min(y_real), max(y_real)], 'k--', label="Ideal")
+    plt.plot(
+        [min(y_real), max(y_real)], [min(y_real), max(y_real)], "k--", label="Ideal"
+    )
     plt.xlabel("Preço Real")
     plt.ylabel("Preço Previsto")
     plt.title("Diagrama de Dispersão - Preço Real vs Previsto")
@@ -173,7 +191,7 @@ def plotar_dispersao_e_lucros(resultados: Dict[str, Dict], pasta: str = "figures
     plt.grid(True)
     plt.tight_layout()
     caminho_dispersao = os.path.join(pasta, "dispersao_modelos.png")
-    plt.savefig(caminho_dispersao, dpi = 150)
+    plt.savefig(caminho_dispersao, dpi=150)
     logging.info(f"[Dispersão] Gráfico salvo em: {caminho_dispersao}")
     plt.close()
 
@@ -183,20 +201,26 @@ def plotar_dispersao_e_lucros(resultados: Dict[str, Dict], pasta: str = "figures
     erros = []
 
     for nome_modelo, info in resultados.items():
-        if 'simulacao' not in info or 'PrecoHoje' not in info['simulacao']:
-            logging.warning(f"[Correlação] Modelo '{nome_modelo}' sem dados válidos para cálculo.")
+        if "simulacao" not in info or "PrecoHoje" not in info["simulacao"]:
+            logging.warning(
+                f"[Correlação] Modelo '{nome_modelo}' sem dados válidos para cálculo."
+            )
             continue
 
-        y_real = info['simulacao']['PrecoHoje'].values
-        previsoes = info['previsoes'][:len(y_real)]
+        y_real = info["simulacao"]["PrecoHoje"].values
+        previsoes = info["previsoes"][: len(y_real)]
 
         if len(previsoes) != len(y_real) or len(y_real) == 0:
-            logging.warning(f"[Correlação] Modelo '{nome_modelo}' ignorado por dados inconsistentes.")
+            logging.warning(
+                f"[Correlação] Modelo '{nome_modelo}' ignorado por dados inconsistentes."
+            )
             continue
 
         correlacao = np.corrcoef(y_real, previsoes)[0, 1]
         correlacoes[nome_modelo] = correlacao
-        logging.info(f"[Correlação] Modelo '{nome_modelo}' coeficiente de correlação: {correlacao:.4f}")
+        logging.info(
+            f"[Correlação] Modelo '{nome_modelo}' coeficiente de correlação: {correlacao:.4f}"
+        )
 
         # === Ajuste de regressão linear ===
         coef_linear = np.polyfit(y_real, previsoes, deg=1)
@@ -212,12 +236,14 @@ def plotar_dispersao_e_lucros(resultados: Dict[str, Dict], pasta: str = "figures
                 melhor_r2 = r2
                 melhor_eq = f"Pol grau {grau}: {p.convert().coef}"
 
-        equacoes.append({
-            "Modelo": nome_modelo,
-            "Linear": eq_linear,
-            "MelhorPolinomial": melhor_eq,
-            "R2_Polinomial": round(melhor_r2, 4)
-        })
+        equacoes.append(
+            {
+                "Modelo": nome_modelo,
+                "Linear": eq_linear,
+                "MelhorPolinomial": melhor_eq,
+                "R2_Polinomial": round(melhor_r2, 4),
+            }
+        )
 
         # === Erro padrão ===
         erro_padrao = np.sqrt(mean_squared_error(y_real, previsoes))
@@ -225,7 +251,9 @@ def plotar_dispersao_e_lucros(resultados: Dict[str, Dict], pasta: str = "figures
         logging.info(f"[Erro] Modelo '{nome_modelo}' erro padrão: {erro_padrao:.4f}")
 
     # Salva os coeficientes em CSV
-    df_corr = pd.DataFrame(list(correlacoes.items()), columns=['Modelo', 'CoeficienteCorrelacao'])
+    df_corr = pd.DataFrame(
+        list(correlacoes.items()), columns=["Modelo", "CoeficienteCorrelacao"]
+    )
     caminho_corr = os.path.join(pasta, "coeficientes_correlacao.csv")
     df_corr.to_csv(caminho_corr, index=False)
     logging.info(f"[Correlação] Coeficientes salvos em: {caminho_corr}")
@@ -241,8 +269,7 @@ def plotar_dispersao_e_lucros(resultados: Dict[str, Dict], pasta: str = "figures
     caminho_erro = os.path.join(pasta, "erros_padrao.csv")
     df_erros.to_csv(caminho_erro, index=False)
     logging.info(f"[Erro] Erros padrão salvos em: {caminho_erro}")
-    
-    
+
 
 def plot_grafico_comparativo_modelos(df_resultados):
     """
@@ -266,10 +293,10 @@ def plot_grafico_comparativo_modelos(df_resultados):
     """
 
     # Extrai os nomes das criptomoedas e os retornos dos modelos, substituindo None por 0
-    criptos = df_resultados['Criptomoeda']
-    mlp = df_resultados['RetornoPercentual_MLP'].fillna(0)
-    linear = df_resultados['RetornoPercentual_Linear'].fillna(0)
-    poly2 = df_resultados['RetornoPercentual_Polinomial_2'].fillna(0)
+    criptos = df_resultados["Criptomoeda"]
+    mlp = df_resultados["RetornoPercentual_MLP"].fillna(0)
+    linear = df_resultados["RetornoPercentual_Linear"].fillna(0)
+    poly2 = df_resultados["RetornoPercentual_Polinomial_2"].fillna(0)
 
     # Define o número de barras e o espaçamento entre elas
     x = np.arange(len(criptos))
@@ -279,21 +306,27 @@ def plot_grafico_comparativo_modelos(df_resultados):
     fig, ax = plt.subplots(figsize=(12, 6))
 
     # Plota as barras de cada modelo deslocadas horizontalmente
-    ax.bar(x - largura_barra, mlp, width=largura_barra, label='MLP', color='skyblue')
-    ax.bar(x, linear, width=largura_barra, label='Linear', color='orange')
-    ax.bar(x + largura_barra, poly2, width=largura_barra, label='Polinomial Grau 2', color='green')
+    ax.bar(x - largura_barra, mlp, width=largura_barra, label="MLP", color="skyblue")
+    ax.bar(x, linear, width=largura_barra, label="Linear", color="orange")
+    ax.bar(
+        x + largura_barra,
+        poly2,
+        width=largura_barra,
+        label="Polinomial Grau 2",
+        color="green",
+    )
 
     # Ajustes do eixo x
     ax.set_xticks(x)
-    ax.set_xticklabels(criptos, rotation=45, ha='right')
+    ax.set_xticklabels(criptos, rotation=45, ha="right")
 
     # Rótulos e título
-    ax.set_ylabel('Retorno Percentual')
-    ax.set_title('Comparação de Retorno Percentual por Modelo e Criptomoeda')
+    ax.set_ylabel("Retorno Percentual")
+    ax.set_title("Comparação de Retorno Percentual por Modelo e Criptomoeda")
 
     # Exibe legenda e grade
     ax.legend()
-    ax.grid(True, linestyle='--', alpha=0.5)
+    ax.grid(True, linestyle="--", alpha=0.5)
 
     # Ajusta layout para não cortar elementos
     plt.tight_layout()
@@ -336,23 +369,23 @@ def plot_comparativo_modelos_por_cripto(df_resultados: pd.DataFrame):
 
     # Para cada criptomoeda, gera um gráfico individual
     for _, row in df_resultados.iterrows():
-        cripto = row['Criptomoeda']
+        cripto = row["Criptomoeda"]
 
         # Coleta os retornos disponíveis para os modelos
-        modelos = ['MLP', 'Linear'] + [f'Polinomial_{i}' for i in range(2, 11)]
-        colunas = [f'RetornoPercentual_{m}' for m in modelos]
+        modelos = ["MLP", "Linear"] + [f"Polinomial_{i}" for i in range(2, 11)]
+        colunas = [f"RetornoPercentual_{m}" for m in modelos]
         retornos = [row.get(col, 0) or 0 for col in colunas]  # trata None como 0
 
         # Cria gráfico de barras
         fig, ax = plt.subplots(figsize=(10, 6))
         x = np.arange(len(modelos))
 
-        ax.bar(x, retornos, color='skyblue')
+        ax.bar(x, retornos, color="skyblue")
         ax.set_xticks(x)
-        ax.set_xticklabels(modelos, rotation=45, ha='right')
-        ax.set_ylabel('Retorno Percentual')
-        ax.set_title(f'Retorno por Modelo - {cripto}')
-        ax.grid(True, linestyle='--', alpha=0.5)
+        ax.set_xticklabels(modelos, rotation=45, ha="right")
+        ax.set_ylabel("Retorno Percentual")
+        ax.set_title(f"Retorno por Modelo - {cripto}")
+        ax.grid(True, linestyle="--", alpha=0.5)
 
         plt.tight_layout()
         caminho_arquivo = os.path.join(pasta_saida, f"{cripto}_modelos.png")
@@ -360,7 +393,7 @@ def plot_comparativo_modelos_por_cripto(df_resultados: pd.DataFrame):
         plt.close()
 
         print(f"[OK] Gráfico salvo: {caminho_arquivo}")
-        
+
 
 def salvar_graficos_mlp(y_real, y_pred, loss_curve, nome_cripto):
     """
@@ -374,7 +407,12 @@ def salvar_graficos_mlp(y_real, y_pred, loss_curve, nome_cripto):
     # Gráfico 1: Dispersão Real vs Previsto
     plt.figure(figsize=(8, 6))
     plt.scatter(y_real, y_pred, alpha=0.6, color="purple", edgecolor="k")
-    plt.plot([min(y_real), max(y_real)], [min(y_real), max(y_real)], color="red", linestyle="--")
+    plt.plot(
+        [min(y_real), max(y_real)],
+        [min(y_real), max(y_real)],
+        color="red",
+        linestyle="--",
+    )
     plt.xlabel("Valor Real")
     plt.ylabel("Valor Previsto")
     plt.title(f"Dispersão: Real vs Previsto (MLP - {nome_cripto})")
@@ -385,7 +423,7 @@ def salvar_graficos_mlp(y_real, y_pred, loss_curve, nome_cripto):
 
     # Gráfico 2: Curva de perda durante o treinamento
     plt.figure(figsize=(8, 6))
-    plt.plot(loss_curve, marker='o')
+    plt.plot(loss_curve, marker="o")
     plt.xlabel("Época")
     plt.ylabel("Loss")
     plt.title(f"Curva de Treinamento (Loss) - MLP ({nome_cripto})")
@@ -395,14 +433,14 @@ def salvar_graficos_mlp(y_real, y_pred, loss_curve, nome_cripto):
     plt.close()
 
     print(f"[OK] Gráficos do MLP salvos em {pasta}")
-    
+
 
 def salvar_importancia_features(
     modelo: MLPRegressor,
     X_scaled: np.ndarray,
     y: np.ndarray,
     feature_names: list[str],
-    nome_cripto: str
+    nome_cripto: str,
 ) -> None:
     """
     Gera e salva gráfico de importância das features com Permutation Importance.
@@ -415,7 +453,9 @@ def salvar_importancia_features(
         nome_cripto (str): Nome da criptomoeda (para nome do arquivo).
         pasta_destino (str): Pasta onde salvar o gráfico.
     """
-    resultados = permutation_importance(modelo, X_scaled, y, n_repeats=10, random_state=42)
+    resultados = permutation_importance(
+        modelo, X_scaled, y, n_repeats=10, random_state=42
+    )
 
     importancias = resultados.importances_mean
     indices = np.argsort(importancias)[::-1]
@@ -432,7 +472,7 @@ def salvar_importancia_features(
     plt.savefig(path, dpi=150)
     plt.close()
     logging.info(f"[OK] Gráfico de importância das features salvo em {path}")
-    
+
 
 def salvar_graficos_regressao(nome_modelo: str, y_real, y_pred, nome_cripto: str):
     """
@@ -449,7 +489,9 @@ def salvar_graficos_regressao(nome_modelo: str, y_real, y_pred, nome_cripto: str
     # Adiciona linha de referência y = x (linha ideal)
     min_val = min(np.min(y_real), np.min(y_pred))
     max_val = max(np.max(y_real), np.max(y_pred))
-    plt.plot([min_val, max_val], [min_val, max_val], color='red', linestyle='--', linewidth=2)
+    plt.plot(
+        [min_val, max_val], [min_val, max_val], color="red", linestyle="--", linewidth=2
+    )
 
     plt.grid(True)
     plt.tight_layout()
@@ -458,7 +500,7 @@ def salvar_graficos_regressao(nome_modelo: str, y_real, y_pred, nome_cripto: str
     plt.savefig(path, dpi=150)
     plt.close()
     logging.info(f"[OK] Gráfico de dispersão salvo em {path}")
-    
+
 
 def plot_analise_exploratoria_conjunta(df: pd.DataFrame, nome_cripto: str) -> None:
     """
@@ -473,7 +515,7 @@ def plot_analise_exploratoria_conjunta(df: pd.DataFrame, nome_cripto: str) -> No
         nome_cripto (str): Nome da criptomoeda (para nome do arquivo e título).
     """
     # calcula as medidas de dispersão
-    fechamento = df['Fechamento'].dropna()
+    fechamento = df["Fechamento"].dropna()
     desvio = fechamento.std()
     variancia = fechamento.var()
     amplitude = fechamento.max() - fechamento.min()
@@ -496,17 +538,18 @@ def plot_analise_exploratoria_conjunta(df: pd.DataFrame, nome_cripto: str) -> No
 
     # 3) Linha com média, mediana e moda (7d)
     dfm = df.copy()
-    dfm['Media']   = dfm['Fechamento'].rolling(7).mean()
-    dfm['Mediana'] = dfm['Fechamento'].rolling(7).median()
+    dfm["Media"] = dfm["Fechamento"].rolling(7).mean()
+    dfm["Mediana"] = dfm["Fechamento"].rolling(7).median()
     # usa sua função de moda rolante
     from src.visualization import moda_rolante
-    dfm['Moda']    = dfm['Fechamento'].rolling(7).apply(moda_rolante, raw=False)
+
+    dfm["Moda"] = dfm["Fechamento"].rolling(7).apply(moda_rolante, raw=False)
 
     ax = axes[1, 0]
-    ax.plot(dfm['Data'], dfm['Fechamento'], label='Fechamento', lw=1)
-    ax.plot(dfm['Data'], dfm['Media'],   label='Média (7d)',  ls='--')
-    ax.plot(dfm['Data'], dfm['Mediana'], label='Mediana (7d)',ls='-.')
-    ax.plot(dfm['Data'], dfm['Moda'],    label='Moda (7d)',   ls=':')
+    ax.plot(dfm["Data"], dfm["Fechamento"], label="Fechamento", lw=1)
+    ax.plot(dfm["Data"], dfm["Media"], label="Média (7d)", ls="--")
+    ax.plot(dfm["Data"], dfm["Mediana"], label="Mediana (7d)", ls="-.")
+    ax.plot(dfm["Data"], dfm["Moda"], label="Moda (7d)", ls=":")
     ax.set_title(f"{nome_cripto} — Fechamento e Médias Móveis")
     ax.set_xlabel("Data")
     ax.set_ylabel("Preço")
@@ -514,14 +557,14 @@ def plot_analise_exploratoria_conjunta(df: pd.DataFrame, nome_cripto: str) -> No
 
     # 4) Texto com dispersão
     ax = axes[1, 1]
-    ax.axis('off')
+    ax.axis("off")
     text = (
         f"Desvio Padrão: {desvio:.4f}\n"
         f"Variância:       {variancia:.4f}\n"
         f"Amplitude:       {amplitude:.4f}\n"
         f"IQR (Q3–Q1):     {iqr:.4f}"
     )
-    ax.text(0.1, 0.5, text, fontsize=12, family='monospace')
+    ax.text(0.1, 0.5, text, fontsize=12, family="monospace")
     ax.set_title(f"{nome_cripto} — Medidas de Dispersão")
 
     plt.tight_layout()
