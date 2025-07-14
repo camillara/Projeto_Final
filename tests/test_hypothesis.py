@@ -39,3 +39,51 @@ def test_executar_teste_hipotese_retorno_diario_real() -> None:
     ]
     for coluna in colunas_esperadas:
         assert coluna in df_resultado.columns
+
+
+def test_amostra_menor_que_dois_ignorada(tmp_path) -> None:
+    """
+    Testa se o grupo com menos de 2 valores de capital é ignorado corretamente.
+    """
+    df = pd.DataFrame({
+        "Data": ["2023-01-01"],
+        "Criptomoeda": ["FAKECOIN"],
+        "Modelo": ["SIMPLES"],
+        "CapitalFinal": [10000]
+    })
+
+    caminho = tmp_path / "dados.csv"
+    df.to_csv(caminho, index=False)
+
+    df_resultado = executar_teste_hipotese_retorno_diario_real(
+        caminho_csv=str(caminho),
+        salvar_csv=False
+    )
+
+    assert df_resultado.empty, "O resultado deve ser vazio para amostras com menos de 2 valores."
+    
+
+def test_salvar_csv_resultado(tmp_path) -> None:
+    """
+    Testa se o arquivo CSV de resultado é salvo corretamente.
+    """
+    df = pd.DataFrame({
+        "Data": pd.date_range("2023-01-01", periods=3),
+        "Criptomoeda": ["XTEST"] * 3,
+        "Modelo": ["MODEL_X"] * 3,
+        "CapitalFinal": [10000, 10200, 10100]
+    })
+
+    caminho_dados = tmp_path / "dados.csv"
+    caminho_saida = tmp_path / "resultado.csv"
+    df.to_csv(caminho_dados, index=False)
+
+    df_resultado = executar_teste_hipotese_retorno_diario_real(
+        caminho_csv=str(caminho_dados),
+        salvar_csv=True,
+        caminho_saida=str(caminho_saida)
+    )
+
+    assert caminho_saida.exists(), "O arquivo CSV de saída não foi criado."
+    assert not df_resultado.empty, "O DataFrame de resultado não deveria estar vazio."
+

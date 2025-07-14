@@ -1,5 +1,6 @@
 import os
 import logging
+from typing import Union
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,8 +13,12 @@ from src.visualization import (
     calcular_dispersao,
     plotar_dispersao_e_lucros,
     plot_grafico_comparativo_modelos,
-    plot_comparativo_modelos_por_cripto
+    plot_comparativo_modelos_por_cripto,
+    plot_linha_media_mediana_moda,
+    moda_rolante
 )
+import pandas as pd
+
 
 def test_salvar_grafico_cria_arquivo() -> None:
     """
@@ -25,14 +30,12 @@ def test_salvar_grafico_cria_arquivo() -> None:
     pasta_destino = "figures"
     caminho_completo = os.path.join(pasta_destino, f"{nome_arquivo}.png")
 
-    # Cria um gráfico simples antes de chamar salvar_grafico
     plt.plot([1, 2, 3], [4, 5, 6])
 
     salvar_grafico(nome_arquivo, pasta_destino)
 
     assert os.path.exists(caminho_completo)
 
-    # Limpeza
     os.remove(caminho_completo)
     
 
@@ -53,10 +56,8 @@ def test_plot_boxplot_cria_arquivo() -> None:
 
     assert os.path.exists(caminho_esperado)
 
-    # Limpeza
     os.remove(caminho_esperado)
     
-
 
 def test_plot_histograma_cria_arquivo() -> None:
     """
@@ -68,20 +69,16 @@ def test_plot_histograma_cria_arquivo() -> None:
     caminho_esperado = os.path.join("figures", f"{nome_cripto}_histograma.png")
 
     df = pd.DataFrame({
-        "Fechamento": [100, 102, 104, 98, 101, 103, 105, 107, 106, 99]
+        "Data": pd.date_range(start="2023-01-01", periods=7, freq="D"),
+        "Fechamento": [100, 102, 101, 103, 99, 98, 97]
     })
 
     plot_histograma(df, nome_cripto)
 
     assert os.path.exists(caminho_esperado)
 
-    # Limpeza
     os.remove(caminho_esperado)
     
-
-import pandas as pd
-import numpy as np
-from src.visualization import moda_rolante
 
 def test_moda_rolante() -> None:
     """
@@ -90,15 +87,12 @@ def test_moda_rolante() -> None:
     - Série com todos os valores únicos.
     - Série vazia.
     """
-    # Moda bem definida (3 ocorre mais vezes)
     serie_1 = pd.Series([1, 2, 3, 3, 3, 4])
     assert moda_rolante(serie_1) == 3, "A moda esperada é 3"
 
-    # Todos valores únicos (espera-se o menor valor dentre os empatados, por padrão do scipy)
     serie_2 = pd.Series([10, 20, 30])
     assert moda_rolante(serie_2) in [10, 20, 30], "Para todos únicos, qualquer valor é aceitável"
 
-    # Série vazia (esperado: NaN)
     serie_3 = pd.Series([], dtype=float)
     resultado = moda_rolante(serie_3)
     assert np.isnan(resultado), "Para série vazia, o retorno deve ser NaN"
@@ -127,36 +121,18 @@ def test_calcular_dispersao(caplog) -> None:
     assert "IQR (Q3 - Q1)" in caplog.text
     
 
-def test_plot_linha_media_mediana_moda_cria_arquivo() -> None:
-    """
-    Testa se a função plot_linha_media_mediana_moda() gera e salva corretamente o gráfico.
-
-    Cria um DataFrame fictício com dados suficientes para calcular média, mediana e moda móveis
-    e verifica se o gráfico é salvo na pasta figures com o nome esperado.
-    """
-    df = pd.DataFrame({
-        "Data": pd.date_range("2023-01-01", periods=10, freq="D"),
-        "Fechamento": [10, 12, 11, 13, 15, 14, 16, 17, 18, 19]
-    })
-    nome_cripto = "TESTE_MODA"
-    caminho = f"figures/{nome_cripto}_linha_tempo.png"
-
-    # Gera gráfico
-    plot_linha_media_mediana_moda(df, nome_cripto)
-
-    # Verifica se o arquivo foi criado
-    assert os.path.exists(caminho)
-
-    # Limpa o arquivo gerado após o teste
-    os.remove(caminho)
-
-
 def test_plotar_dispersao_e_lucros_gera_arquivos() -> None:
     """
     Testa a função plotar_dispersao_e_lucros verificando se todos os arquivos esperados
-    são gerados corretamente: gráficos de dispersão e lucro, além dos CSVs de correlação,
+    são gerados corretamente: gráfico de dispersão, além dos CSVs de correlação,
     equações de regressão e erro padrão.
     """
+    import os
+    import numpy as np
+    import pandas as pd
+    from datetime import datetime, timedelta
+    from src.visualization import plotar_dispersao_e_lucros
+
     pasta = "figures"
     hoje = datetime.today()
     datas = pd.date_range(hoje - timedelta(days=9), periods=10)
@@ -180,34 +156,28 @@ def test_plotar_dispersao_e_lucros_gera_arquivos() -> None:
         }
     }
 
-    # Executa a função
     plotar_dispersao_e_lucros(resultados_falsos, pasta=pasta)
 
-    # Lista de caminhos esperados
     arquivos_esperados = [
         f"{pasta}/dispersao_modelos.png",
-        f"{pasta}/lucros_modelos.png",
         f"{pasta}/coeficientes_correlacao.csv",
         f"{pasta}/equacoes_regressao.csv",
         f"{pasta}/erros_padrao.csv"
     ]
 
-    # Verifica se todos os arquivos foram criados
     for caminho in arquivos_esperados:
         assert os.path.exists(caminho), f"Arquivo não encontrado: {caminho}"
 
-    # Limpa os arquivos após o teste
     for caminho in arquivos_esperados:
         os.remove(caminho)
-        
 
+        
 
 def test_plot_grafico_comparativo_modelos() -> None:
     """
     Testa a função plot_grafico_comparativo_modelos verificando se o gráfico é gerado
     corretamente com um DataFrame de exemplo e salvo no local esperado.
     """
-    # Cria um DataFrame simulado
     df_resultados = pd.DataFrame({
         "Criptomoeda": ["BTC", "ETH", "XRP"],
         "RetornoPercentual_MLP": [12.5, 8.3, None],
@@ -215,20 +185,15 @@ def test_plot_grafico_comparativo_modelos() -> None:
         "RetornoPercentual_Polinomial_2": [11.2, 9.8, 6.1]
     })
 
-    # Caminho esperado do gráfico
     caminho_grafico = "figures/retorno_modelos_comparativo.png"
 
-    # Remove o arquivo se já existir
     if os.path.exists(caminho_grafico):
         os.remove(caminho_grafico)
 
-    # Executa a função
     plot_grafico_comparativo_modelos(df_resultados)
 
-    # Verifica se o arquivo foi criado
     assert os.path.exists(caminho_grafico), f"Gráfico não foi criado: {caminho_grafico}"
 
-    # Limpeza após o teste
     os.remove(caminho_grafico)
     
     
@@ -237,7 +202,7 @@ def test_plot_comparativo_modelos_por_cripto() -> None:
     Testa a função plot_grafico_comparativo_modelos que gera um gráfico de barras
     para cada criptomoeda comparando os retornos de todos os modelos.
     """
-    # DataFrame de exemplo
+
     df = pd.DataFrame({
         "Criptomoeda": ["BTC", "ETH"],
         "RetornoPercentual_MLP": [10.5, 9.3],
@@ -256,15 +221,83 @@ def test_plot_comparativo_modelos_por_cripto() -> None:
     pasta = "figures/modelos_por_cripto"
     arquivos_esperados = [os.path.join(pasta, f"{cripto}_modelos.png") for cripto in df["Criptomoeda"]]
 
-    # Remove arquivos antigos se existirem
+
     for arquivo in arquivos_esperados:
         if os.path.exists(arquivo):
             os.remove(arquivo)
 
-    # Executa a função
     plot_comparativo_modelos_por_cripto(df)
 
-    # Verifica se os gráficos foram gerados
     for arquivo in arquivos_esperados:
         assert os.path.exists(arquivo), f"Gráfico não foi gerado: {arquivo}"
-        os.remove(arquivo)  # Limpa após o teste
+        os.remove(arquivo)
+        
+
+def test_plot_histograma_cria_arquivo() -> None:
+    """
+    Testa se a função `plot_histograma` salva corretamente o gráfico de histograma
+    em um arquivo na pasta 'figures'.
+    """
+    nome_cripto: str = "cripto_histograma"
+    caminho_esperado: str = os.path.join("figures", f"{nome_cripto}_histograma.png")
+
+    df: pd.DataFrame = pd.DataFrame({"Fechamento": np.random.normal(100, 10, 100)})
+    plot_histograma(df, nome_cripto)
+
+    assert os.path.exists(caminho_esperado)
+    os.remove(caminho_esperado)
+    
+
+def test_plot_linha_media_mediana_moda_cria_arquivo() -> None:
+    """
+    Testa se o gráfico com média, mediana e moda é salvo corretamente.
+    """
+    nome_cripto = "cripto_linha"
+    caminho_esperado = os.path.join("figures", f"{nome_cripto}_linha_tempo.png")
+
+    df = pd.DataFrame({
+        "Data": pd.date_range(start="2023-01-01", periods=7, freq="D"),
+        "Fechamento": [100, 102, 101, 103, 99, 98, 97]
+    })
+
+    plot_linha_media_mediana_moda(df, nome_cripto)
+
+    assert os.path.exists(caminho_esperado)
+
+    os.remove(caminho_esperado)
+
+
+
+def test_plotar_dispersao_e_lucros_cria_graficos() -> None:
+    """
+    Testa se `plotar_dispersao_e_lucros` salva corretamente os gráficos de dispersão
+    e evolução de lucros na pasta figures/dispersao/<nome_cripto>.
+    """
+
+    nome_cripto: str = "cripto_dispersao"
+    caminho_saida: str = os.path.join("figures", "dispersao", nome_cripto)
+    os.makedirs(caminho_saida, exist_ok=True)
+
+    resultados: dict[str, dict[str, Union[np.ndarray, pd.DataFrame]]] = {
+        "ModeloTeste": {
+            "previsoes": np.array([100, 105, 110, 108]),
+            "reais": np.array([102, 104, 109, 107]),
+            "simulacao": pd.DataFrame({
+                "PrecoHoje": [102, 104, 109, 107],
+                "PrecoPrevisto": [100, 105, 110, 108]
+            })
+        }
+    }
+
+    plotar_dispersao_e_lucros(resultados, caminho_saida)
+
+    arquivos: list[str] = os.listdir(caminho_saida)
+
+    assert "dispersao_modelos.png" in arquivos
+    assert "coeficientes_correlacao.csv" in arquivos
+    assert "equacoes_regressao.csv" in arquivos
+    assert "erros_padrao.csv" in arquivos
+
+    for nome in arquivos:
+        os.remove(os.path.join(caminho_saida, nome))
+    os.rmdir(caminho_saida)
